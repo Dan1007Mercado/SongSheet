@@ -14,28 +14,9 @@ class LibraryScreen extends ConsumerStatefulWidget {
   ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
-class _LibraryScreenState extends ConsumerState<LibraryScreen>
-    with WidgetsBindingObserver {
+class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   bool _busy = false;
   ImportProgress? _progress;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    Future<void>(() => _refresh(silent: true));
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && !_busy) _refresh(silent: true);
-  }
 
   Future<void> _refresh({bool silent = false}) async {
     if (_busy) return;
@@ -80,6 +61,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message), showCloseIcon: true));
+    } on ScanCancelledException {
+      if (mounted && !silent) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Scan stopped: date settings changed. Tap Scan to use the new range.')),
+        );
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
