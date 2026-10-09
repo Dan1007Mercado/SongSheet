@@ -88,6 +88,26 @@ void main() {
     },
   );
 
+  test('unknown download dates are excluded without OCR', () async {
+    final storage = CountingStorage([
+      _document(uri: 'content://fixture/unknown', identity: 'unknown'),
+    ]);
+    await _insertSource(database);
+    final coordinator = ImportCoordinator(database, storage, OcrService());
+    await coordinator.saveConfiguration(ScanConfiguration(
+      startDate: DateTime(2026, 10, 9),
+      endDate: DateTime(2026, 10, 9),
+      endAtToday: false,
+    ));
+    final summary = await coordinator.refresh();
+    expect(summary.excluded, 1);
+    expect(storage.previewReads, 0);
+    expect(storage.fullReads, 0);
+    final ledger = await database.select(database.discoveryLedger).getSingle();
+    expect(ledger.dateSource, 'unknown');
+    expect(ledger.processingState, 'excluded');
+  });
+
   test('unchanged examined and renamed identities skip content work', () async {
     final day = DateTime(2026, 10, 9);
     final storage = CountingStorage([
@@ -141,7 +161,7 @@ void main() {
 SafDocument _document({
   required String uri,
   required String identity,
-  required DateTime added,
+  DateTime? added,
 }) => SafDocument(
   uri: uri,
   stableIdentity: identity,
