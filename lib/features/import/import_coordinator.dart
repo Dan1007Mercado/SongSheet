@@ -180,13 +180,17 @@ class ImportCoordinator {
         document.uri,
       );
       final firstSeen = existing?.firstSeenAt ?? DateTime.now();
-      final eligibilityDate = document.providerAddedAt ?? firstSeen;
-      final dateSource = document.providerAddedAt == null
-          ? 'first_seen'
-          : 'provider_added';
+      // Never treat discovery time as the date an image was downloaded.
+      // Preserve the existing ledger date only if it came from the provider.
+      final savedAt = document.providerAddedAt ??
+          (existing?.dateSource == 'provider_added'
+              ? existing?.providerAddedAt
+              : null);
+      final eligibilityDate = savedAt ?? firstSeen;
+      final dateSource = savedAt == null ? 'unknown' : 'provider_added';
       final fingerprint =
           '${document.size}:${document.lastModified?.millisecondsSinceEpoch ?? 0}';
-      final eligible = config.includes(eligibilityDate);
+      final eligible = savedAt != null && config.includes(savedAt);
       final eligibilityMicros = eligibilityWatch.elapsedMicroseconds;
 
       _checkScan(generation);
