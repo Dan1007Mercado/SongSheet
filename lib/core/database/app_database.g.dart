@@ -5015,6 +5015,1816 @@ class AppSettingsCompanion extends UpdateCompanion<SettingRecord> {
   }
 }
 
+class $SourceFoldersTable extends SourceFolders
+    with TableInfo<$SourceFoldersTable, SourceFolderRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SourceFoldersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _treeUriMeta = const VerificationMeta(
+    'treeUri',
+  );
+  @override
+  late final GeneratedColumn<String> treeUri = GeneratedColumn<String>(
+    'tree_uri',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _displayNameMeta = const VerificationMeta(
+    'displayName',
+  );
+  @override
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+    'display_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _includeSubfoldersMeta = const VerificationMeta(
+    'includeSubfolders',
+  );
+  @override
+  late final GeneratedColumn<bool> includeSubfolders = GeneratedColumn<bool>(
+    'include_subfolders',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("include_subfolders" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _addedAtMeta = const VerificationMeta(
+    'addedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> addedAt = GeneratedColumn<DateTime>(
+    'added_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    treeUri,
+    displayName,
+    includeSubfolders,
+    addedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'source_folders';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SourceFolderRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('tree_uri')) {
+      context.handle(
+        _treeUriMeta,
+        treeUri.isAcceptableOrUnknown(data['tree_uri']!, _treeUriMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_treeUriMeta);
+    }
+    if (data.containsKey('display_name')) {
+      context.handle(
+        _displayNameMeta,
+        displayName.isAcceptableOrUnknown(
+          data['display_name']!,
+          _displayNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_displayNameMeta);
+    }
+    if (data.containsKey('include_subfolders')) {
+      context.handle(
+        _includeSubfoldersMeta,
+        includeSubfolders.isAcceptableOrUnknown(
+          data['include_subfolders']!,
+          _includeSubfoldersMeta,
+        ),
+      );
+    }
+    if (data.containsKey('added_at')) {
+      context.handle(
+        _addedAtMeta,
+        addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_addedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SourceFolderRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SourceFolderRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      treeUri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tree_uri'],
+      )!,
+      displayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_name'],
+      )!,
+      includeSubfolders: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}include_subfolders'],
+      )!,
+      addedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}added_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SourceFoldersTable createAlias(String alias) {
+    return $SourceFoldersTable(attachedDatabase, alias);
+  }
+}
+
+class SourceFolderRecord extends DataClass
+    implements Insertable<SourceFolderRecord> {
+  final String id;
+  final String treeUri;
+  final String displayName;
+  final bool includeSubfolders;
+  final DateTime addedAt;
+  const SourceFolderRecord({
+    required this.id,
+    required this.treeUri,
+    required this.displayName,
+    required this.includeSubfolders,
+    required this.addedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['tree_uri'] = Variable<String>(treeUri);
+    map['display_name'] = Variable<String>(displayName);
+    map['include_subfolders'] = Variable<bool>(includeSubfolders);
+    map['added_at'] = Variable<DateTime>(addedAt);
+    return map;
+  }
+
+  SourceFoldersCompanion toCompanion(bool nullToAbsent) {
+    return SourceFoldersCompanion(
+      id: Value(id),
+      treeUri: Value(treeUri),
+      displayName: Value(displayName),
+      includeSubfolders: Value(includeSubfolders),
+      addedAt: Value(addedAt),
+    );
+  }
+
+  factory SourceFolderRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SourceFolderRecord(
+      id: serializer.fromJson<String>(json['id']),
+      treeUri: serializer.fromJson<String>(json['treeUri']),
+      displayName: serializer.fromJson<String>(json['displayName']),
+      includeSubfolders: serializer.fromJson<bool>(json['includeSubfolders']),
+      addedAt: serializer.fromJson<DateTime>(json['addedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'treeUri': serializer.toJson<String>(treeUri),
+      'displayName': serializer.toJson<String>(displayName),
+      'includeSubfolders': serializer.toJson<bool>(includeSubfolders),
+      'addedAt': serializer.toJson<DateTime>(addedAt),
+    };
+  }
+
+  SourceFolderRecord copyWith({
+    String? id,
+    String? treeUri,
+    String? displayName,
+    bool? includeSubfolders,
+    DateTime? addedAt,
+  }) => SourceFolderRecord(
+    id: id ?? this.id,
+    treeUri: treeUri ?? this.treeUri,
+    displayName: displayName ?? this.displayName,
+    includeSubfolders: includeSubfolders ?? this.includeSubfolders,
+    addedAt: addedAt ?? this.addedAt,
+  );
+  SourceFolderRecord copyWithCompanion(SourceFoldersCompanion data) {
+    return SourceFolderRecord(
+      id: data.id.present ? data.id.value : this.id,
+      treeUri: data.treeUri.present ? data.treeUri.value : this.treeUri,
+      displayName: data.displayName.present
+          ? data.displayName.value
+          : this.displayName,
+      includeSubfolders: data.includeSubfolders.present
+          ? data.includeSubfolders.value
+          : this.includeSubfolders,
+      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SourceFolderRecord(')
+          ..write('id: $id, ')
+          ..write('treeUri: $treeUri, ')
+          ..write('displayName: $displayName, ')
+          ..write('includeSubfolders: $includeSubfolders, ')
+          ..write('addedAt: $addedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, treeUri, displayName, includeSubfolders, addedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SourceFolderRecord &&
+          other.id == this.id &&
+          other.treeUri == this.treeUri &&
+          other.displayName == this.displayName &&
+          other.includeSubfolders == this.includeSubfolders &&
+          other.addedAt == this.addedAt);
+}
+
+class SourceFoldersCompanion extends UpdateCompanion<SourceFolderRecord> {
+  final Value<String> id;
+  final Value<String> treeUri;
+  final Value<String> displayName;
+  final Value<bool> includeSubfolders;
+  final Value<DateTime> addedAt;
+  final Value<int> rowid;
+  const SourceFoldersCompanion({
+    this.id = const Value.absent(),
+    this.treeUri = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.includeSubfolders = const Value.absent(),
+    this.addedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SourceFoldersCompanion.insert({
+    required String id,
+    required String treeUri,
+    required String displayName,
+    this.includeSubfolders = const Value.absent(),
+    required DateTime addedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       treeUri = Value(treeUri),
+       displayName = Value(displayName),
+       addedAt = Value(addedAt);
+  static Insertable<SourceFolderRecord> custom({
+    Expression<String>? id,
+    Expression<String>? treeUri,
+    Expression<String>? displayName,
+    Expression<bool>? includeSubfolders,
+    Expression<DateTime>? addedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (treeUri != null) 'tree_uri': treeUri,
+      if (displayName != null) 'display_name': displayName,
+      if (includeSubfolders != null) 'include_subfolders': includeSubfolders,
+      if (addedAt != null) 'added_at': addedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SourceFoldersCompanion copyWith({
+    Value<String>? id,
+    Value<String>? treeUri,
+    Value<String>? displayName,
+    Value<bool>? includeSubfolders,
+    Value<DateTime>? addedAt,
+    Value<int>? rowid,
+  }) {
+    return SourceFoldersCompanion(
+      id: id ?? this.id,
+      treeUri: treeUri ?? this.treeUri,
+      displayName: displayName ?? this.displayName,
+      includeSubfolders: includeSubfolders ?? this.includeSubfolders,
+      addedAt: addedAt ?? this.addedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (treeUri.present) {
+      map['tree_uri'] = Variable<String>(treeUri.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (includeSubfolders.present) {
+      map['include_subfolders'] = Variable<bool>(includeSubfolders.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<DateTime>(addedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SourceFoldersCompanion(')
+          ..write('id: $id, ')
+          ..write('treeUri: $treeUri, ')
+          ..write('displayName: $displayName, ')
+          ..write('includeSubfolders: $includeSubfolders, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DiscoveryLedgerTable extends DiscoveryLedger
+    with TableInfo<$DiscoveryLedgerTable, DiscoveryRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DiscoveryLedgerTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stableIdentityMeta = const VerificationMeta(
+    'stableIdentity',
+  );
+  @override
+  late final GeneratedColumn<String> stableIdentity = GeneratedColumn<String>(
+    'stable_identity',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _sourceFolderIdMeta = const VerificationMeta(
+    'sourceFolderId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceFolderId = GeneratedColumn<String>(
+    'source_folder_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES source_folders (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _documentUriMeta = const VerificationMeta(
+    'documentUri',
+  );
+  @override
+  late final GeneratedColumn<String> documentUri = GeneratedColumn<String>(
+    'document_uri',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _parentUriMeta = const VerificationMeta(
+    'parentUri',
+  );
+  @override
+  late final GeneratedColumn<String> parentUri = GeneratedColumn<String>(
+    'parent_uri',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _filenameMeta = const VerificationMeta(
+    'filename',
+  );
+  @override
+  late final GeneratedColumn<String> filename = GeneratedColumn<String>(
+    'filename',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
+    'mimeType',
+  );
+  @override
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _byteSizeMeta = const VerificationMeta(
+    'byteSize',
+  );
+  @override
+  late final GeneratedColumn<int> byteSize = GeneratedColumn<int>(
+    'byte_size',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _providerAddedAtMeta = const VerificationMeta(
+    'providerAddedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> providerAddedAt =
+      GeneratedColumn<DateTime>(
+        'provider_added_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _firstSeenAtMeta = const VerificationMeta(
+    'firstSeenAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> firstSeenAt = GeneratedColumn<DateTime>(
+    'first_seen_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eligibilityDateMeta = const VerificationMeta(
+    'eligibilityDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> eligibilityDate =
+      GeneratedColumn<DateTime>(
+        'eligibility_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _dateSourceMeta = const VerificationMeta(
+    'dateSource',
+  );
+  @override
+  late final GeneratedColumn<String> dateSource = GeneratedColumn<String>(
+    'date_source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _modifiedAtMeta = const VerificationMeta(
+    'modifiedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> modifiedAt = GeneratedColumn<DateTime>(
+    'modified_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _metadataFingerprintMeta =
+      const VerificationMeta('metadataFingerprint');
+  @override
+  late final GeneratedColumn<String> metadataFingerprint =
+      GeneratedColumn<String>(
+        'metadata_fingerprint',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _processingVersionMeta = const VerificationMeta(
+    'processingVersion',
+  );
+  @override
+  late final GeneratedColumn<int> processingVersion = GeneratedColumn<int>(
+    'processing_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _classificationMeta = const VerificationMeta(
+    'classification',
+  );
+  @override
+  late final GeneratedColumn<String> classification = GeneratedColumn<String>(
+    'classification',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('unclassified'),
+  );
+  static const VerificationMeta _classificationScoreMeta =
+      const VerificationMeta('classificationScore');
+  @override
+  late final GeneratedColumn<double> classificationScore =
+      GeneratedColumn<double>(
+        'classification_score',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _processingStateMeta = const VerificationMeta(
+    'processingState',
+  );
+  @override
+  late final GeneratedColumn<String> processingState = GeneratedColumn<String>(
+    'processing_state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('discovered'),
+  );
+  static const VerificationMeta _failureReasonMeta = const VerificationMeta(
+    'failureReason',
+  );
+  @override
+  late final GeneratedColumn<String> failureReason = GeneratedColumn<String>(
+    'failure_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sha256Meta = const VerificationMeta('sha256');
+  @override
+  late final GeneratedColumn<String> sha256 = GeneratedColumn<String>(
+    'sha256',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pixelFingerprintMeta = const VerificationMeta(
+    'pixelFingerprint',
+  );
+  @override
+  late final GeneratedColumn<String> pixelFingerprint = GeneratedColumn<String>(
+    'pixel_fingerprint',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currentUriMeta = const VerificationMeta(
+    'currentUri',
+  );
+  @override
+  late final GeneratedColumn<String> currentUri = GeneratedColumn<String>(
+    'current_uri',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stageTimingsJsonMeta = const VerificationMeta(
+    'stageTimingsJson',
+  );
+  @override
+  late final GeneratedColumn<String> stageTimingsJson = GeneratedColumn<String>(
+    'stage_timings_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
+  static const VerificationMeta _lastProcessedAtMeta = const VerificationMeta(
+    'lastProcessedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastProcessedAt =
+      GeneratedColumn<DateTime>(
+        'last_processed_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    stableIdentity,
+    sourceFolderId,
+    documentUri,
+    parentUri,
+    filename,
+    mimeType,
+    byteSize,
+    providerAddedAt,
+    firstSeenAt,
+    eligibilityDate,
+    dateSource,
+    modifiedAt,
+    metadataFingerprint,
+    processingVersion,
+    classification,
+    classificationScore,
+    processingState,
+    failureReason,
+    sha256,
+    pixelFingerprint,
+    currentUri,
+    stageTimingsJson,
+    lastProcessedAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'discovery_ledger';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DiscoveryRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('stable_identity')) {
+      context.handle(
+        _stableIdentityMeta,
+        stableIdentity.isAcceptableOrUnknown(
+          data['stable_identity']!,
+          _stableIdentityMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_stableIdentityMeta);
+    }
+    if (data.containsKey('source_folder_id')) {
+      context.handle(
+        _sourceFolderIdMeta,
+        sourceFolderId.isAcceptableOrUnknown(
+          data['source_folder_id']!,
+          _sourceFolderIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('document_uri')) {
+      context.handle(
+        _documentUriMeta,
+        documentUri.isAcceptableOrUnknown(
+          data['document_uri']!,
+          _documentUriMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_documentUriMeta);
+    }
+    if (data.containsKey('parent_uri')) {
+      context.handle(
+        _parentUriMeta,
+        parentUri.isAcceptableOrUnknown(data['parent_uri']!, _parentUriMeta),
+      );
+    }
+    if (data.containsKey('filename')) {
+      context.handle(
+        _filenameMeta,
+        filename.isAcceptableOrUnknown(data['filename']!, _filenameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_filenameMeta);
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(
+        _mimeTypeMeta,
+        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mimeTypeMeta);
+    }
+    if (data.containsKey('byte_size')) {
+      context.handle(
+        _byteSizeMeta,
+        byteSize.isAcceptableOrUnknown(data['byte_size']!, _byteSizeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_byteSizeMeta);
+    }
+    if (data.containsKey('provider_added_at')) {
+      context.handle(
+        _providerAddedAtMeta,
+        providerAddedAt.isAcceptableOrUnknown(
+          data['provider_added_at']!,
+          _providerAddedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('first_seen_at')) {
+      context.handle(
+        _firstSeenAtMeta,
+        firstSeenAt.isAcceptableOrUnknown(
+          data['first_seen_at']!,
+          _firstSeenAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_firstSeenAtMeta);
+    }
+    if (data.containsKey('eligibility_date')) {
+      context.handle(
+        _eligibilityDateMeta,
+        eligibilityDate.isAcceptableOrUnknown(
+          data['eligibility_date']!,
+          _eligibilityDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_eligibilityDateMeta);
+    }
+    if (data.containsKey('date_source')) {
+      context.handle(
+        _dateSourceMeta,
+        dateSource.isAcceptableOrUnknown(data['date_source']!, _dateSourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateSourceMeta);
+    }
+    if (data.containsKey('modified_at')) {
+      context.handle(
+        _modifiedAtMeta,
+        modifiedAt.isAcceptableOrUnknown(data['modified_at']!, _modifiedAtMeta),
+      );
+    }
+    if (data.containsKey('metadata_fingerprint')) {
+      context.handle(
+        _metadataFingerprintMeta,
+        metadataFingerprint.isAcceptableOrUnknown(
+          data['metadata_fingerprint']!,
+          _metadataFingerprintMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_metadataFingerprintMeta);
+    }
+    if (data.containsKey('processing_version')) {
+      context.handle(
+        _processingVersionMeta,
+        processingVersion.isAcceptableOrUnknown(
+          data['processing_version']!,
+          _processingVersionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('classification')) {
+      context.handle(
+        _classificationMeta,
+        classification.isAcceptableOrUnknown(
+          data['classification']!,
+          _classificationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('classification_score')) {
+      context.handle(
+        _classificationScoreMeta,
+        classificationScore.isAcceptableOrUnknown(
+          data['classification_score']!,
+          _classificationScoreMeta,
+        ),
+      );
+    }
+    if (data.containsKey('processing_state')) {
+      context.handle(
+        _processingStateMeta,
+        processingState.isAcceptableOrUnknown(
+          data['processing_state']!,
+          _processingStateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('failure_reason')) {
+      context.handle(
+        _failureReasonMeta,
+        failureReason.isAcceptableOrUnknown(
+          data['failure_reason']!,
+          _failureReasonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sha256')) {
+      context.handle(
+        _sha256Meta,
+        sha256.isAcceptableOrUnknown(data['sha256']!, _sha256Meta),
+      );
+    }
+    if (data.containsKey('pixel_fingerprint')) {
+      context.handle(
+        _pixelFingerprintMeta,
+        pixelFingerprint.isAcceptableOrUnknown(
+          data['pixel_fingerprint']!,
+          _pixelFingerprintMeta,
+        ),
+      );
+    }
+    if (data.containsKey('current_uri')) {
+      context.handle(
+        _currentUriMeta,
+        currentUri.isAcceptableOrUnknown(data['current_uri']!, _currentUriMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_currentUriMeta);
+    }
+    if (data.containsKey('stage_timings_json')) {
+      context.handle(
+        _stageTimingsJsonMeta,
+        stageTimingsJson.isAcceptableOrUnknown(
+          data['stage_timings_json']!,
+          _stageTimingsJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_processed_at')) {
+      context.handle(
+        _lastProcessedAtMeta,
+        lastProcessedAt.isAcceptableOrUnknown(
+          data['last_processed_at']!,
+          _lastProcessedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DiscoveryRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DiscoveryRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      stableIdentity: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stable_identity'],
+      )!,
+      sourceFolderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_folder_id'],
+      ),
+      documentUri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}document_uri'],
+      )!,
+      parentUri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parent_uri'],
+      ),
+      filename: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}filename'],
+      )!,
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      )!,
+      byteSize: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}byte_size'],
+      )!,
+      providerAddedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}provider_added_at'],
+      ),
+      firstSeenAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}first_seen_at'],
+      )!,
+      eligibilityDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}eligibility_date'],
+      )!,
+      dateSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}date_source'],
+      )!,
+      modifiedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}modified_at'],
+      ),
+      metadataFingerprint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}metadata_fingerprint'],
+      )!,
+      processingVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}processing_version'],
+      )!,
+      classification: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}classification'],
+      )!,
+      classificationScore: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}classification_score'],
+      ),
+      processingState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}processing_state'],
+      )!,
+      failureReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}failure_reason'],
+      ),
+      sha256: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sha256'],
+      ),
+      pixelFingerprint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pixel_fingerprint'],
+      ),
+      currentUri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}current_uri'],
+      )!,
+      stageTimingsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stage_timings_json'],
+      )!,
+      lastProcessedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_processed_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DiscoveryLedgerTable createAlias(String alias) {
+    return $DiscoveryLedgerTable(attachedDatabase, alias);
+  }
+}
+
+class DiscoveryRecord extends DataClass implements Insertable<DiscoveryRecord> {
+  final String id;
+  final String stableIdentity;
+  final String? sourceFolderId;
+  final String documentUri;
+  final String? parentUri;
+  final String filename;
+  final String mimeType;
+  final int byteSize;
+  final DateTime? providerAddedAt;
+  final DateTime firstSeenAt;
+  final DateTime eligibilityDate;
+  final String dateSource;
+  final DateTime? modifiedAt;
+  final String metadataFingerprint;
+  final int processingVersion;
+  final String classification;
+  final double? classificationScore;
+  final String processingState;
+  final String? failureReason;
+  final String? sha256;
+  final String? pixelFingerprint;
+  final String currentUri;
+  final String stageTimingsJson;
+  final DateTime? lastProcessedAt;
+  final DateTime updatedAt;
+  const DiscoveryRecord({
+    required this.id,
+    required this.stableIdentity,
+    this.sourceFolderId,
+    required this.documentUri,
+    this.parentUri,
+    required this.filename,
+    required this.mimeType,
+    required this.byteSize,
+    this.providerAddedAt,
+    required this.firstSeenAt,
+    required this.eligibilityDate,
+    required this.dateSource,
+    this.modifiedAt,
+    required this.metadataFingerprint,
+    required this.processingVersion,
+    required this.classification,
+    this.classificationScore,
+    required this.processingState,
+    this.failureReason,
+    this.sha256,
+    this.pixelFingerprint,
+    required this.currentUri,
+    required this.stageTimingsJson,
+    this.lastProcessedAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['stable_identity'] = Variable<String>(stableIdentity);
+    if (!nullToAbsent || sourceFolderId != null) {
+      map['source_folder_id'] = Variable<String>(sourceFolderId);
+    }
+    map['document_uri'] = Variable<String>(documentUri);
+    if (!nullToAbsent || parentUri != null) {
+      map['parent_uri'] = Variable<String>(parentUri);
+    }
+    map['filename'] = Variable<String>(filename);
+    map['mime_type'] = Variable<String>(mimeType);
+    map['byte_size'] = Variable<int>(byteSize);
+    if (!nullToAbsent || providerAddedAt != null) {
+      map['provider_added_at'] = Variable<DateTime>(providerAddedAt);
+    }
+    map['first_seen_at'] = Variable<DateTime>(firstSeenAt);
+    map['eligibility_date'] = Variable<DateTime>(eligibilityDate);
+    map['date_source'] = Variable<String>(dateSource);
+    if (!nullToAbsent || modifiedAt != null) {
+      map['modified_at'] = Variable<DateTime>(modifiedAt);
+    }
+    map['metadata_fingerprint'] = Variable<String>(metadataFingerprint);
+    map['processing_version'] = Variable<int>(processingVersion);
+    map['classification'] = Variable<String>(classification);
+    if (!nullToAbsent || classificationScore != null) {
+      map['classification_score'] = Variable<double>(classificationScore);
+    }
+    map['processing_state'] = Variable<String>(processingState);
+    if (!nullToAbsent || failureReason != null) {
+      map['failure_reason'] = Variable<String>(failureReason);
+    }
+    if (!nullToAbsent || sha256 != null) {
+      map['sha256'] = Variable<String>(sha256);
+    }
+    if (!nullToAbsent || pixelFingerprint != null) {
+      map['pixel_fingerprint'] = Variable<String>(pixelFingerprint);
+    }
+    map['current_uri'] = Variable<String>(currentUri);
+    map['stage_timings_json'] = Variable<String>(stageTimingsJson);
+    if (!nullToAbsent || lastProcessedAt != null) {
+      map['last_processed_at'] = Variable<DateTime>(lastProcessedAt);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  DiscoveryLedgerCompanion toCompanion(bool nullToAbsent) {
+    return DiscoveryLedgerCompanion(
+      id: Value(id),
+      stableIdentity: Value(stableIdentity),
+      sourceFolderId: sourceFolderId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceFolderId),
+      documentUri: Value(documentUri),
+      parentUri: parentUri == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentUri),
+      filename: Value(filename),
+      mimeType: Value(mimeType),
+      byteSize: Value(byteSize),
+      providerAddedAt: providerAddedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(providerAddedAt),
+      firstSeenAt: Value(firstSeenAt),
+      eligibilityDate: Value(eligibilityDate),
+      dateSource: Value(dateSource),
+      modifiedAt: modifiedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(modifiedAt),
+      metadataFingerprint: Value(metadataFingerprint),
+      processingVersion: Value(processingVersion),
+      classification: Value(classification),
+      classificationScore: classificationScore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(classificationScore),
+      processingState: Value(processingState),
+      failureReason: failureReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(failureReason),
+      sha256: sha256 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sha256),
+      pixelFingerprint: pixelFingerprint == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pixelFingerprint),
+      currentUri: Value(currentUri),
+      stageTimingsJson: Value(stageTimingsJson),
+      lastProcessedAt: lastProcessedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastProcessedAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory DiscoveryRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DiscoveryRecord(
+      id: serializer.fromJson<String>(json['id']),
+      stableIdentity: serializer.fromJson<String>(json['stableIdentity']),
+      sourceFolderId: serializer.fromJson<String?>(json['sourceFolderId']),
+      documentUri: serializer.fromJson<String>(json['documentUri']),
+      parentUri: serializer.fromJson<String?>(json['parentUri']),
+      filename: serializer.fromJson<String>(json['filename']),
+      mimeType: serializer.fromJson<String>(json['mimeType']),
+      byteSize: serializer.fromJson<int>(json['byteSize']),
+      providerAddedAt: serializer.fromJson<DateTime?>(json['providerAddedAt']),
+      firstSeenAt: serializer.fromJson<DateTime>(json['firstSeenAt']),
+      eligibilityDate: serializer.fromJson<DateTime>(json['eligibilityDate']),
+      dateSource: serializer.fromJson<String>(json['dateSource']),
+      modifiedAt: serializer.fromJson<DateTime?>(json['modifiedAt']),
+      metadataFingerprint: serializer.fromJson<String>(
+        json['metadataFingerprint'],
+      ),
+      processingVersion: serializer.fromJson<int>(json['processingVersion']),
+      classification: serializer.fromJson<String>(json['classification']),
+      classificationScore: serializer.fromJson<double?>(
+        json['classificationScore'],
+      ),
+      processingState: serializer.fromJson<String>(json['processingState']),
+      failureReason: serializer.fromJson<String?>(json['failureReason']),
+      sha256: serializer.fromJson<String?>(json['sha256']),
+      pixelFingerprint: serializer.fromJson<String?>(json['pixelFingerprint']),
+      currentUri: serializer.fromJson<String>(json['currentUri']),
+      stageTimingsJson: serializer.fromJson<String>(json['stageTimingsJson']),
+      lastProcessedAt: serializer.fromJson<DateTime?>(json['lastProcessedAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'stableIdentity': serializer.toJson<String>(stableIdentity),
+      'sourceFolderId': serializer.toJson<String?>(sourceFolderId),
+      'documentUri': serializer.toJson<String>(documentUri),
+      'parentUri': serializer.toJson<String?>(parentUri),
+      'filename': serializer.toJson<String>(filename),
+      'mimeType': serializer.toJson<String>(mimeType),
+      'byteSize': serializer.toJson<int>(byteSize),
+      'providerAddedAt': serializer.toJson<DateTime?>(providerAddedAt),
+      'firstSeenAt': serializer.toJson<DateTime>(firstSeenAt),
+      'eligibilityDate': serializer.toJson<DateTime>(eligibilityDate),
+      'dateSource': serializer.toJson<String>(dateSource),
+      'modifiedAt': serializer.toJson<DateTime?>(modifiedAt),
+      'metadataFingerprint': serializer.toJson<String>(metadataFingerprint),
+      'processingVersion': serializer.toJson<int>(processingVersion),
+      'classification': serializer.toJson<String>(classification),
+      'classificationScore': serializer.toJson<double?>(classificationScore),
+      'processingState': serializer.toJson<String>(processingState),
+      'failureReason': serializer.toJson<String?>(failureReason),
+      'sha256': serializer.toJson<String?>(sha256),
+      'pixelFingerprint': serializer.toJson<String?>(pixelFingerprint),
+      'currentUri': serializer.toJson<String>(currentUri),
+      'stageTimingsJson': serializer.toJson<String>(stageTimingsJson),
+      'lastProcessedAt': serializer.toJson<DateTime?>(lastProcessedAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  DiscoveryRecord copyWith({
+    String? id,
+    String? stableIdentity,
+    Value<String?> sourceFolderId = const Value.absent(),
+    String? documentUri,
+    Value<String?> parentUri = const Value.absent(),
+    String? filename,
+    String? mimeType,
+    int? byteSize,
+    Value<DateTime?> providerAddedAt = const Value.absent(),
+    DateTime? firstSeenAt,
+    DateTime? eligibilityDate,
+    String? dateSource,
+    Value<DateTime?> modifiedAt = const Value.absent(),
+    String? metadataFingerprint,
+    int? processingVersion,
+    String? classification,
+    Value<double?> classificationScore = const Value.absent(),
+    String? processingState,
+    Value<String?> failureReason = const Value.absent(),
+    Value<String?> sha256 = const Value.absent(),
+    Value<String?> pixelFingerprint = const Value.absent(),
+    String? currentUri,
+    String? stageTimingsJson,
+    Value<DateTime?> lastProcessedAt = const Value.absent(),
+    DateTime? updatedAt,
+  }) => DiscoveryRecord(
+    id: id ?? this.id,
+    stableIdentity: stableIdentity ?? this.stableIdentity,
+    sourceFolderId: sourceFolderId.present
+        ? sourceFolderId.value
+        : this.sourceFolderId,
+    documentUri: documentUri ?? this.documentUri,
+    parentUri: parentUri.present ? parentUri.value : this.parentUri,
+    filename: filename ?? this.filename,
+    mimeType: mimeType ?? this.mimeType,
+    byteSize: byteSize ?? this.byteSize,
+    providerAddedAt: providerAddedAt.present
+        ? providerAddedAt.value
+        : this.providerAddedAt,
+    firstSeenAt: firstSeenAt ?? this.firstSeenAt,
+    eligibilityDate: eligibilityDate ?? this.eligibilityDate,
+    dateSource: dateSource ?? this.dateSource,
+    modifiedAt: modifiedAt.present ? modifiedAt.value : this.modifiedAt,
+    metadataFingerprint: metadataFingerprint ?? this.metadataFingerprint,
+    processingVersion: processingVersion ?? this.processingVersion,
+    classification: classification ?? this.classification,
+    classificationScore: classificationScore.present
+        ? classificationScore.value
+        : this.classificationScore,
+    processingState: processingState ?? this.processingState,
+    failureReason: failureReason.present
+        ? failureReason.value
+        : this.failureReason,
+    sha256: sha256.present ? sha256.value : this.sha256,
+    pixelFingerprint: pixelFingerprint.present
+        ? pixelFingerprint.value
+        : this.pixelFingerprint,
+    currentUri: currentUri ?? this.currentUri,
+    stageTimingsJson: stageTimingsJson ?? this.stageTimingsJson,
+    lastProcessedAt: lastProcessedAt.present
+        ? lastProcessedAt.value
+        : this.lastProcessedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  DiscoveryRecord copyWithCompanion(DiscoveryLedgerCompanion data) {
+    return DiscoveryRecord(
+      id: data.id.present ? data.id.value : this.id,
+      stableIdentity: data.stableIdentity.present
+          ? data.stableIdentity.value
+          : this.stableIdentity,
+      sourceFolderId: data.sourceFolderId.present
+          ? data.sourceFolderId.value
+          : this.sourceFolderId,
+      documentUri: data.documentUri.present
+          ? data.documentUri.value
+          : this.documentUri,
+      parentUri: data.parentUri.present ? data.parentUri.value : this.parentUri,
+      filename: data.filename.present ? data.filename.value : this.filename,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      byteSize: data.byteSize.present ? data.byteSize.value : this.byteSize,
+      providerAddedAt: data.providerAddedAt.present
+          ? data.providerAddedAt.value
+          : this.providerAddedAt,
+      firstSeenAt: data.firstSeenAt.present
+          ? data.firstSeenAt.value
+          : this.firstSeenAt,
+      eligibilityDate: data.eligibilityDate.present
+          ? data.eligibilityDate.value
+          : this.eligibilityDate,
+      dateSource: data.dateSource.present
+          ? data.dateSource.value
+          : this.dateSource,
+      modifiedAt: data.modifiedAt.present
+          ? data.modifiedAt.value
+          : this.modifiedAt,
+      metadataFingerprint: data.metadataFingerprint.present
+          ? data.metadataFingerprint.value
+          : this.metadataFingerprint,
+      processingVersion: data.processingVersion.present
+          ? data.processingVersion.value
+          : this.processingVersion,
+      classification: data.classification.present
+          ? data.classification.value
+          : this.classification,
+      classificationScore: data.classificationScore.present
+          ? data.classificationScore.value
+          : this.classificationScore,
+      processingState: data.processingState.present
+          ? data.processingState.value
+          : this.processingState,
+      failureReason: data.failureReason.present
+          ? data.failureReason.value
+          : this.failureReason,
+      sha256: data.sha256.present ? data.sha256.value : this.sha256,
+      pixelFingerprint: data.pixelFingerprint.present
+          ? data.pixelFingerprint.value
+          : this.pixelFingerprint,
+      currentUri: data.currentUri.present
+          ? data.currentUri.value
+          : this.currentUri,
+      stageTimingsJson: data.stageTimingsJson.present
+          ? data.stageTimingsJson.value
+          : this.stageTimingsJson,
+      lastProcessedAt: data.lastProcessedAt.present
+          ? data.lastProcessedAt.value
+          : this.lastProcessedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DiscoveryRecord(')
+          ..write('id: $id, ')
+          ..write('stableIdentity: $stableIdentity, ')
+          ..write('sourceFolderId: $sourceFolderId, ')
+          ..write('documentUri: $documentUri, ')
+          ..write('parentUri: $parentUri, ')
+          ..write('filename: $filename, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('byteSize: $byteSize, ')
+          ..write('providerAddedAt: $providerAddedAt, ')
+          ..write('firstSeenAt: $firstSeenAt, ')
+          ..write('eligibilityDate: $eligibilityDate, ')
+          ..write('dateSource: $dateSource, ')
+          ..write('modifiedAt: $modifiedAt, ')
+          ..write('metadataFingerprint: $metadataFingerprint, ')
+          ..write('processingVersion: $processingVersion, ')
+          ..write('classification: $classification, ')
+          ..write('classificationScore: $classificationScore, ')
+          ..write('processingState: $processingState, ')
+          ..write('failureReason: $failureReason, ')
+          ..write('sha256: $sha256, ')
+          ..write('pixelFingerprint: $pixelFingerprint, ')
+          ..write('currentUri: $currentUri, ')
+          ..write('stageTimingsJson: $stageTimingsJson, ')
+          ..write('lastProcessedAt: $lastProcessedAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    id,
+    stableIdentity,
+    sourceFolderId,
+    documentUri,
+    parentUri,
+    filename,
+    mimeType,
+    byteSize,
+    providerAddedAt,
+    firstSeenAt,
+    eligibilityDate,
+    dateSource,
+    modifiedAt,
+    metadataFingerprint,
+    processingVersion,
+    classification,
+    classificationScore,
+    processingState,
+    failureReason,
+    sha256,
+    pixelFingerprint,
+    currentUri,
+    stageTimingsJson,
+    lastProcessedAt,
+    updatedAt,
+  ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DiscoveryRecord &&
+          other.id == this.id &&
+          other.stableIdentity == this.stableIdentity &&
+          other.sourceFolderId == this.sourceFolderId &&
+          other.documentUri == this.documentUri &&
+          other.parentUri == this.parentUri &&
+          other.filename == this.filename &&
+          other.mimeType == this.mimeType &&
+          other.byteSize == this.byteSize &&
+          other.providerAddedAt == this.providerAddedAt &&
+          other.firstSeenAt == this.firstSeenAt &&
+          other.eligibilityDate == this.eligibilityDate &&
+          other.dateSource == this.dateSource &&
+          other.modifiedAt == this.modifiedAt &&
+          other.metadataFingerprint == this.metadataFingerprint &&
+          other.processingVersion == this.processingVersion &&
+          other.classification == this.classification &&
+          other.classificationScore == this.classificationScore &&
+          other.processingState == this.processingState &&
+          other.failureReason == this.failureReason &&
+          other.sha256 == this.sha256 &&
+          other.pixelFingerprint == this.pixelFingerprint &&
+          other.currentUri == this.currentUri &&
+          other.stageTimingsJson == this.stageTimingsJson &&
+          other.lastProcessedAt == this.lastProcessedAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DiscoveryLedgerCompanion extends UpdateCompanion<DiscoveryRecord> {
+  final Value<String> id;
+  final Value<String> stableIdentity;
+  final Value<String?> sourceFolderId;
+  final Value<String> documentUri;
+  final Value<String?> parentUri;
+  final Value<String> filename;
+  final Value<String> mimeType;
+  final Value<int> byteSize;
+  final Value<DateTime?> providerAddedAt;
+  final Value<DateTime> firstSeenAt;
+  final Value<DateTime> eligibilityDate;
+  final Value<String> dateSource;
+  final Value<DateTime?> modifiedAt;
+  final Value<String> metadataFingerprint;
+  final Value<int> processingVersion;
+  final Value<String> classification;
+  final Value<double?> classificationScore;
+  final Value<String> processingState;
+  final Value<String?> failureReason;
+  final Value<String?> sha256;
+  final Value<String?> pixelFingerprint;
+  final Value<String> currentUri;
+  final Value<String> stageTimingsJson;
+  final Value<DateTime?> lastProcessedAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const DiscoveryLedgerCompanion({
+    this.id = const Value.absent(),
+    this.stableIdentity = const Value.absent(),
+    this.sourceFolderId = const Value.absent(),
+    this.documentUri = const Value.absent(),
+    this.parentUri = const Value.absent(),
+    this.filename = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.byteSize = const Value.absent(),
+    this.providerAddedAt = const Value.absent(),
+    this.firstSeenAt = const Value.absent(),
+    this.eligibilityDate = const Value.absent(),
+    this.dateSource = const Value.absent(),
+    this.modifiedAt = const Value.absent(),
+    this.metadataFingerprint = const Value.absent(),
+    this.processingVersion = const Value.absent(),
+    this.classification = const Value.absent(),
+    this.classificationScore = const Value.absent(),
+    this.processingState = const Value.absent(),
+    this.failureReason = const Value.absent(),
+    this.sha256 = const Value.absent(),
+    this.pixelFingerprint = const Value.absent(),
+    this.currentUri = const Value.absent(),
+    this.stageTimingsJson = const Value.absent(),
+    this.lastProcessedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DiscoveryLedgerCompanion.insert({
+    required String id,
+    required String stableIdentity,
+    this.sourceFolderId = const Value.absent(),
+    required String documentUri,
+    this.parentUri = const Value.absent(),
+    required String filename,
+    required String mimeType,
+    required int byteSize,
+    this.providerAddedAt = const Value.absent(),
+    required DateTime firstSeenAt,
+    required DateTime eligibilityDate,
+    required String dateSource,
+    this.modifiedAt = const Value.absent(),
+    required String metadataFingerprint,
+    this.processingVersion = const Value.absent(),
+    this.classification = const Value.absent(),
+    this.classificationScore = const Value.absent(),
+    this.processingState = const Value.absent(),
+    this.failureReason = const Value.absent(),
+    this.sha256 = const Value.absent(),
+    this.pixelFingerprint = const Value.absent(),
+    required String currentUri,
+    this.stageTimingsJson = const Value.absent(),
+    this.lastProcessedAt = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       stableIdentity = Value(stableIdentity),
+       documentUri = Value(documentUri),
+       filename = Value(filename),
+       mimeType = Value(mimeType),
+       byteSize = Value(byteSize),
+       firstSeenAt = Value(firstSeenAt),
+       eligibilityDate = Value(eligibilityDate),
+       dateSource = Value(dateSource),
+       metadataFingerprint = Value(metadataFingerprint),
+       currentUri = Value(currentUri),
+       updatedAt = Value(updatedAt);
+  static Insertable<DiscoveryRecord> custom({
+    Expression<String>? id,
+    Expression<String>? stableIdentity,
+    Expression<String>? sourceFolderId,
+    Expression<String>? documentUri,
+    Expression<String>? parentUri,
+    Expression<String>? filename,
+    Expression<String>? mimeType,
+    Expression<int>? byteSize,
+    Expression<DateTime>? providerAddedAt,
+    Expression<DateTime>? firstSeenAt,
+    Expression<DateTime>? eligibilityDate,
+    Expression<String>? dateSource,
+    Expression<DateTime>? modifiedAt,
+    Expression<String>? metadataFingerprint,
+    Expression<int>? processingVersion,
+    Expression<String>? classification,
+    Expression<double>? classificationScore,
+    Expression<String>? processingState,
+    Expression<String>? failureReason,
+    Expression<String>? sha256,
+    Expression<String>? pixelFingerprint,
+    Expression<String>? currentUri,
+    Expression<String>? stageTimingsJson,
+    Expression<DateTime>? lastProcessedAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (stableIdentity != null) 'stable_identity': stableIdentity,
+      if (sourceFolderId != null) 'source_folder_id': sourceFolderId,
+      if (documentUri != null) 'document_uri': documentUri,
+      if (parentUri != null) 'parent_uri': parentUri,
+      if (filename != null) 'filename': filename,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (byteSize != null) 'byte_size': byteSize,
+      if (providerAddedAt != null) 'provider_added_at': providerAddedAt,
+      if (firstSeenAt != null) 'first_seen_at': firstSeenAt,
+      if (eligibilityDate != null) 'eligibility_date': eligibilityDate,
+      if (dateSource != null) 'date_source': dateSource,
+      if (modifiedAt != null) 'modified_at': modifiedAt,
+      if (metadataFingerprint != null)
+        'metadata_fingerprint': metadataFingerprint,
+      if (processingVersion != null) 'processing_version': processingVersion,
+      if (classification != null) 'classification': classification,
+      if (classificationScore != null)
+        'classification_score': classificationScore,
+      if (processingState != null) 'processing_state': processingState,
+      if (failureReason != null) 'failure_reason': failureReason,
+      if (sha256 != null) 'sha256': sha256,
+      if (pixelFingerprint != null) 'pixel_fingerprint': pixelFingerprint,
+      if (currentUri != null) 'current_uri': currentUri,
+      if (stageTimingsJson != null) 'stage_timings_json': stageTimingsJson,
+      if (lastProcessedAt != null) 'last_processed_at': lastProcessedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DiscoveryLedgerCompanion copyWith({
+    Value<String>? id,
+    Value<String>? stableIdentity,
+    Value<String?>? sourceFolderId,
+    Value<String>? documentUri,
+    Value<String?>? parentUri,
+    Value<String>? filename,
+    Value<String>? mimeType,
+    Value<int>? byteSize,
+    Value<DateTime?>? providerAddedAt,
+    Value<DateTime>? firstSeenAt,
+    Value<DateTime>? eligibilityDate,
+    Value<String>? dateSource,
+    Value<DateTime?>? modifiedAt,
+    Value<String>? metadataFingerprint,
+    Value<int>? processingVersion,
+    Value<String>? classification,
+    Value<double?>? classificationScore,
+    Value<String>? processingState,
+    Value<String?>? failureReason,
+    Value<String?>? sha256,
+    Value<String?>? pixelFingerprint,
+    Value<String>? currentUri,
+    Value<String>? stageTimingsJson,
+    Value<DateTime?>? lastProcessedAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return DiscoveryLedgerCompanion(
+      id: id ?? this.id,
+      stableIdentity: stableIdentity ?? this.stableIdentity,
+      sourceFolderId: sourceFolderId ?? this.sourceFolderId,
+      documentUri: documentUri ?? this.documentUri,
+      parentUri: parentUri ?? this.parentUri,
+      filename: filename ?? this.filename,
+      mimeType: mimeType ?? this.mimeType,
+      byteSize: byteSize ?? this.byteSize,
+      providerAddedAt: providerAddedAt ?? this.providerAddedAt,
+      firstSeenAt: firstSeenAt ?? this.firstSeenAt,
+      eligibilityDate: eligibilityDate ?? this.eligibilityDate,
+      dateSource: dateSource ?? this.dateSource,
+      modifiedAt: modifiedAt ?? this.modifiedAt,
+      metadataFingerprint: metadataFingerprint ?? this.metadataFingerprint,
+      processingVersion: processingVersion ?? this.processingVersion,
+      classification: classification ?? this.classification,
+      classificationScore: classificationScore ?? this.classificationScore,
+      processingState: processingState ?? this.processingState,
+      failureReason: failureReason ?? this.failureReason,
+      sha256: sha256 ?? this.sha256,
+      pixelFingerprint: pixelFingerprint ?? this.pixelFingerprint,
+      currentUri: currentUri ?? this.currentUri,
+      stageTimingsJson: stageTimingsJson ?? this.stageTimingsJson,
+      lastProcessedAt: lastProcessedAt ?? this.lastProcessedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (stableIdentity.present) {
+      map['stable_identity'] = Variable<String>(stableIdentity.value);
+    }
+    if (sourceFolderId.present) {
+      map['source_folder_id'] = Variable<String>(sourceFolderId.value);
+    }
+    if (documentUri.present) {
+      map['document_uri'] = Variable<String>(documentUri.value);
+    }
+    if (parentUri.present) {
+      map['parent_uri'] = Variable<String>(parentUri.value);
+    }
+    if (filename.present) {
+      map['filename'] = Variable<String>(filename.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (byteSize.present) {
+      map['byte_size'] = Variable<int>(byteSize.value);
+    }
+    if (providerAddedAt.present) {
+      map['provider_added_at'] = Variable<DateTime>(providerAddedAt.value);
+    }
+    if (firstSeenAt.present) {
+      map['first_seen_at'] = Variable<DateTime>(firstSeenAt.value);
+    }
+    if (eligibilityDate.present) {
+      map['eligibility_date'] = Variable<DateTime>(eligibilityDate.value);
+    }
+    if (dateSource.present) {
+      map['date_source'] = Variable<String>(dateSource.value);
+    }
+    if (modifiedAt.present) {
+      map['modified_at'] = Variable<DateTime>(modifiedAt.value);
+    }
+    if (metadataFingerprint.present) {
+      map['metadata_fingerprint'] = Variable<String>(metadataFingerprint.value);
+    }
+    if (processingVersion.present) {
+      map['processing_version'] = Variable<int>(processingVersion.value);
+    }
+    if (classification.present) {
+      map['classification'] = Variable<String>(classification.value);
+    }
+    if (classificationScore.present) {
+      map['classification_score'] = Variable<double>(classificationScore.value);
+    }
+    if (processingState.present) {
+      map['processing_state'] = Variable<String>(processingState.value);
+    }
+    if (failureReason.present) {
+      map['failure_reason'] = Variable<String>(failureReason.value);
+    }
+    if (sha256.present) {
+      map['sha256'] = Variable<String>(sha256.value);
+    }
+    if (pixelFingerprint.present) {
+      map['pixel_fingerprint'] = Variable<String>(pixelFingerprint.value);
+    }
+    if (currentUri.present) {
+      map['current_uri'] = Variable<String>(currentUri.value);
+    }
+    if (stageTimingsJson.present) {
+      map['stage_timings_json'] = Variable<String>(stageTimingsJson.value);
+    }
+    if (lastProcessedAt.present) {
+      map['last_processed_at'] = Variable<DateTime>(lastProcessedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DiscoveryLedgerCompanion(')
+          ..write('id: $id, ')
+          ..write('stableIdentity: $stableIdentity, ')
+          ..write('sourceFolderId: $sourceFolderId, ')
+          ..write('documentUri: $documentUri, ')
+          ..write('parentUri: $parentUri, ')
+          ..write('filename: $filename, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('byteSize: $byteSize, ')
+          ..write('providerAddedAt: $providerAddedAt, ')
+          ..write('firstSeenAt: $firstSeenAt, ')
+          ..write('eligibilityDate: $eligibilityDate, ')
+          ..write('dateSource: $dateSource, ')
+          ..write('modifiedAt: $modifiedAt, ')
+          ..write('metadataFingerprint: $metadataFingerprint, ')
+          ..write('processingVersion: $processingVersion, ')
+          ..write('classification: $classification, ')
+          ..write('classificationScore: $classificationScore, ')
+          ..write('processingState: $processingState, ')
+          ..write('failureReason: $failureReason, ')
+          ..write('sha256: $sha256, ')
+          ..write('pixelFingerprint: $pixelFingerprint, ')
+          ..write('currentUri: $currentUri, ')
+          ..write('stageTimingsJson: $stageTimingsJson, ')
+          ..write('lastProcessedAt: $lastProcessedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5029,6 +6839,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FileOperationsTable fileOperations = $FileOperationsTable(this);
   late final $ReaderProgressTable readerProgress = $ReaderProgressTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $SourceFoldersTable sourceFolders = $SourceFoldersTable(this);
+  late final $DiscoveryLedgerTable discoveryLedger = $DiscoveryLedgerTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5044,6 +6858,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     fileOperations,
     readerProgress,
     appSettings,
+    sourceFolders,
+    discoveryLedger,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -5102,6 +6918,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('reader_progress', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'source_folders',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('discovery_ledger', kind: UpdateKind.update)],
     ),
   ]);
 }
@@ -9376,6 +11199,1070 @@ typedef $$AppSettingsTableProcessedTableManager =
       SettingRecord,
       PrefetchHooks Function()
     >;
+typedef $$SourceFoldersTableCreateCompanionBuilder =
+    SourceFoldersCompanion Function({
+      required String id,
+      required String treeUri,
+      required String displayName,
+      Value<bool> includeSubfolders,
+      required DateTime addedAt,
+      Value<int> rowid,
+    });
+typedef $$SourceFoldersTableUpdateCompanionBuilder =
+    SourceFoldersCompanion Function({
+      Value<String> id,
+      Value<String> treeUri,
+      Value<String> displayName,
+      Value<bool> includeSubfolders,
+      Value<DateTime> addedAt,
+      Value<int> rowid,
+    });
+
+final class $$SourceFoldersTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $SourceFoldersTable, SourceFolderRecord> {
+  $$SourceFoldersTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$DiscoveryLedgerTable, List<DiscoveryRecord>>
+  _discoveryLedgerRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.discoveryLedger,
+    aliasName: $_aliasNameGenerator(
+      db.sourceFolders.id,
+      db.discoveryLedger.sourceFolderId,
+    ),
+  );
+
+  $$DiscoveryLedgerTableProcessedTableManager get discoveryLedgerRefs {
+    final manager = $$DiscoveryLedgerTableTableManager(
+      $_db,
+      $_db.discoveryLedger,
+    ).filter((f) => f.sourceFolderId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _discoveryLedgerRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$SourceFoldersTableFilterComposer
+    extends Composer<_$AppDatabase, $SourceFoldersTable> {
+  $$SourceFoldersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get treeUri => $composableBuilder(
+    column: $table.treeUri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get includeSubfolders => $composableBuilder(
+    column: $table.includeSubfolders,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get addedAt => $composableBuilder(
+    column: $table.addedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> discoveryLedgerRefs(
+    Expression<bool> Function($$DiscoveryLedgerTableFilterComposer f) f,
+  ) {
+    final $$DiscoveryLedgerTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.discoveryLedger,
+      getReferencedColumn: (t) => t.sourceFolderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DiscoveryLedgerTableFilterComposer(
+            $db: $db,
+            $table: $db.discoveryLedger,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SourceFoldersTableOrderingComposer
+    extends Composer<_$AppDatabase, $SourceFoldersTable> {
+  $$SourceFoldersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get treeUri => $composableBuilder(
+    column: $table.treeUri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get includeSubfolders => $composableBuilder(
+    column: $table.includeSubfolders,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get addedAt => $composableBuilder(
+    column: $table.addedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SourceFoldersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SourceFoldersTable> {
+  $$SourceFoldersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get treeUri =>
+      $composableBuilder(column: $table.treeUri, builder: (column) => column);
+
+  GeneratedColumn<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get includeSubfolders => $composableBuilder(
+    column: $table.includeSubfolders,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get addedAt =>
+      $composableBuilder(column: $table.addedAt, builder: (column) => column);
+
+  Expression<T> discoveryLedgerRefs<T extends Object>(
+    Expression<T> Function($$DiscoveryLedgerTableAnnotationComposer a) f,
+  ) {
+    final $$DiscoveryLedgerTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.discoveryLedger,
+      getReferencedColumn: (t) => t.sourceFolderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DiscoveryLedgerTableAnnotationComposer(
+            $db: $db,
+            $table: $db.discoveryLedger,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SourceFoldersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SourceFoldersTable,
+          SourceFolderRecord,
+          $$SourceFoldersTableFilterComposer,
+          $$SourceFoldersTableOrderingComposer,
+          $$SourceFoldersTableAnnotationComposer,
+          $$SourceFoldersTableCreateCompanionBuilder,
+          $$SourceFoldersTableUpdateCompanionBuilder,
+          (SourceFolderRecord, $$SourceFoldersTableReferences),
+          SourceFolderRecord,
+          PrefetchHooks Function({bool discoveryLedgerRefs})
+        > {
+  $$SourceFoldersTableTableManager(_$AppDatabase db, $SourceFoldersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SourceFoldersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SourceFoldersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SourceFoldersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> treeUri = const Value.absent(),
+                Value<String> displayName = const Value.absent(),
+                Value<bool> includeSubfolders = const Value.absent(),
+                Value<DateTime> addedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SourceFoldersCompanion(
+                id: id,
+                treeUri: treeUri,
+                displayName: displayName,
+                includeSubfolders: includeSubfolders,
+                addedAt: addedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String treeUri,
+                required String displayName,
+                Value<bool> includeSubfolders = const Value.absent(),
+                required DateTime addedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SourceFoldersCompanion.insert(
+                id: id,
+                treeUri: treeUri,
+                displayName: displayName,
+                includeSubfolders: includeSubfolders,
+                addedAt: addedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SourceFoldersTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({discoveryLedgerRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (discoveryLedgerRefs) db.discoveryLedger,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (discoveryLedgerRefs)
+                    await $_getPrefetchedData<
+                      SourceFolderRecord,
+                      $SourceFoldersTable,
+                      DiscoveryRecord
+                    >(
+                      currentTable: table,
+                      referencedTable: $$SourceFoldersTableReferences
+                          ._discoveryLedgerRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$SourceFoldersTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).discoveryLedgerRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.sourceFolderId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SourceFoldersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SourceFoldersTable,
+      SourceFolderRecord,
+      $$SourceFoldersTableFilterComposer,
+      $$SourceFoldersTableOrderingComposer,
+      $$SourceFoldersTableAnnotationComposer,
+      $$SourceFoldersTableCreateCompanionBuilder,
+      $$SourceFoldersTableUpdateCompanionBuilder,
+      (SourceFolderRecord, $$SourceFoldersTableReferences),
+      SourceFolderRecord,
+      PrefetchHooks Function({bool discoveryLedgerRefs})
+    >;
+typedef $$DiscoveryLedgerTableCreateCompanionBuilder =
+    DiscoveryLedgerCompanion Function({
+      required String id,
+      required String stableIdentity,
+      Value<String?> sourceFolderId,
+      required String documentUri,
+      Value<String?> parentUri,
+      required String filename,
+      required String mimeType,
+      required int byteSize,
+      Value<DateTime?> providerAddedAt,
+      required DateTime firstSeenAt,
+      required DateTime eligibilityDate,
+      required String dateSource,
+      Value<DateTime?> modifiedAt,
+      required String metadataFingerprint,
+      Value<int> processingVersion,
+      Value<String> classification,
+      Value<double?> classificationScore,
+      Value<String> processingState,
+      Value<String?> failureReason,
+      Value<String?> sha256,
+      Value<String?> pixelFingerprint,
+      required String currentUri,
+      Value<String> stageTimingsJson,
+      Value<DateTime?> lastProcessedAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$DiscoveryLedgerTableUpdateCompanionBuilder =
+    DiscoveryLedgerCompanion Function({
+      Value<String> id,
+      Value<String> stableIdentity,
+      Value<String?> sourceFolderId,
+      Value<String> documentUri,
+      Value<String?> parentUri,
+      Value<String> filename,
+      Value<String> mimeType,
+      Value<int> byteSize,
+      Value<DateTime?> providerAddedAt,
+      Value<DateTime> firstSeenAt,
+      Value<DateTime> eligibilityDate,
+      Value<String> dateSource,
+      Value<DateTime?> modifiedAt,
+      Value<String> metadataFingerprint,
+      Value<int> processingVersion,
+      Value<String> classification,
+      Value<double?> classificationScore,
+      Value<String> processingState,
+      Value<String?> failureReason,
+      Value<String?> sha256,
+      Value<String?> pixelFingerprint,
+      Value<String> currentUri,
+      Value<String> stageTimingsJson,
+      Value<DateTime?> lastProcessedAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$DiscoveryLedgerTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $DiscoveryLedgerTable, DiscoveryRecord> {
+  $$DiscoveryLedgerTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $SourceFoldersTable _sourceFolderIdTable(_$AppDatabase db) =>
+      db.sourceFolders.createAlias(
+        $_aliasNameGenerator(
+          db.discoveryLedger.sourceFolderId,
+          db.sourceFolders.id,
+        ),
+      );
+
+  $$SourceFoldersTableProcessedTableManager? get sourceFolderId {
+    final $_column = $_itemColumn<String>('source_folder_id');
+    if ($_column == null) return null;
+    final manager = $$SourceFoldersTableTableManager(
+      $_db,
+      $_db.sourceFolders,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sourceFolderIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$DiscoveryLedgerTableFilterComposer
+    extends Composer<_$AppDatabase, $DiscoveryLedgerTable> {
+  $$DiscoveryLedgerTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stableIdentity => $composableBuilder(
+    column: $table.stableIdentity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get documentUri => $composableBuilder(
+    column: $table.documentUri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parentUri => $composableBuilder(
+    column: $table.parentUri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get filename => $composableBuilder(
+    column: $table.filename,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get byteSize => $composableBuilder(
+    column: $table.byteSize,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get providerAddedAt => $composableBuilder(
+    column: $table.providerAddedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get firstSeenAt => $composableBuilder(
+    column: $table.firstSeenAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get eligibilityDate => $composableBuilder(
+    column: $table.eligibilityDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dateSource => $composableBuilder(
+    column: $table.dateSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get modifiedAt => $composableBuilder(
+    column: $table.modifiedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get metadataFingerprint => $composableBuilder(
+    column: $table.metadataFingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get processingVersion => $composableBuilder(
+    column: $table.processingVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get classification => $composableBuilder(
+    column: $table.classification,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get classificationScore => $composableBuilder(
+    column: $table.classificationScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get processingState => $composableBuilder(
+    column: $table.processingState,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get failureReason => $composableBuilder(
+    column: $table.failureReason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sha256 => $composableBuilder(
+    column: $table.sha256,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pixelFingerprint => $composableBuilder(
+    column: $table.pixelFingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currentUri => $composableBuilder(
+    column: $table.currentUri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stageTimingsJson => $composableBuilder(
+    column: $table.stageTimingsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastProcessedAt => $composableBuilder(
+    column: $table.lastProcessedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$SourceFoldersTableFilterComposer get sourceFolderId {
+    final $$SourceFoldersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceFolderId,
+      referencedTable: $db.sourceFolders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourceFoldersTableFilterComposer(
+            $db: $db,
+            $table: $db.sourceFolders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DiscoveryLedgerTableOrderingComposer
+    extends Composer<_$AppDatabase, $DiscoveryLedgerTable> {
+  $$DiscoveryLedgerTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stableIdentity => $composableBuilder(
+    column: $table.stableIdentity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get documentUri => $composableBuilder(
+    column: $table.documentUri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get parentUri => $composableBuilder(
+    column: $table.parentUri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get filename => $composableBuilder(
+    column: $table.filename,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get byteSize => $composableBuilder(
+    column: $table.byteSize,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get providerAddedAt => $composableBuilder(
+    column: $table.providerAddedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get firstSeenAt => $composableBuilder(
+    column: $table.firstSeenAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get eligibilityDate => $composableBuilder(
+    column: $table.eligibilityDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dateSource => $composableBuilder(
+    column: $table.dateSource,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get modifiedAt => $composableBuilder(
+    column: $table.modifiedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get metadataFingerprint => $composableBuilder(
+    column: $table.metadataFingerprint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get processingVersion => $composableBuilder(
+    column: $table.processingVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get classification => $composableBuilder(
+    column: $table.classification,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get classificationScore => $composableBuilder(
+    column: $table.classificationScore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get processingState => $composableBuilder(
+    column: $table.processingState,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get failureReason => $composableBuilder(
+    column: $table.failureReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sha256 => $composableBuilder(
+    column: $table.sha256,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get pixelFingerprint => $composableBuilder(
+    column: $table.pixelFingerprint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currentUri => $composableBuilder(
+    column: $table.currentUri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stageTimingsJson => $composableBuilder(
+    column: $table.stageTimingsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastProcessedAt => $composableBuilder(
+    column: $table.lastProcessedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$SourceFoldersTableOrderingComposer get sourceFolderId {
+    final $$SourceFoldersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceFolderId,
+      referencedTable: $db.sourceFolders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourceFoldersTableOrderingComposer(
+            $db: $db,
+            $table: $db.sourceFolders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DiscoveryLedgerTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DiscoveryLedgerTable> {
+  $$DiscoveryLedgerTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get stableIdentity => $composableBuilder(
+    column: $table.stableIdentity,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get documentUri => $composableBuilder(
+    column: $table.documentUri,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get parentUri =>
+      $composableBuilder(column: $table.parentUri, builder: (column) => column);
+
+  GeneratedColumn<String> get filename =>
+      $composableBuilder(column: $table.filename, builder: (column) => column);
+
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
+
+  GeneratedColumn<int> get byteSize =>
+      $composableBuilder(column: $table.byteSize, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get providerAddedAt => $composableBuilder(
+    column: $table.providerAddedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get firstSeenAt => $composableBuilder(
+    column: $table.firstSeenAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get eligibilityDate => $composableBuilder(
+    column: $table.eligibilityDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dateSource => $composableBuilder(
+    column: $table.dateSource,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get modifiedAt => $composableBuilder(
+    column: $table.modifiedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get metadataFingerprint => $composableBuilder(
+    column: $table.metadataFingerprint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get processingVersion => $composableBuilder(
+    column: $table.processingVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get classification => $composableBuilder(
+    column: $table.classification,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get classificationScore => $composableBuilder(
+    column: $table.classificationScore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get processingState => $composableBuilder(
+    column: $table.processingState,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get failureReason => $composableBuilder(
+    column: $table.failureReason,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sha256 =>
+      $composableBuilder(column: $table.sha256, builder: (column) => column);
+
+  GeneratedColumn<String> get pixelFingerprint => $composableBuilder(
+    column: $table.pixelFingerprint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currentUri => $composableBuilder(
+    column: $table.currentUri,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get stageTimingsJson => $composableBuilder(
+    column: $table.stageTimingsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastProcessedAt => $composableBuilder(
+    column: $table.lastProcessedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$SourceFoldersTableAnnotationComposer get sourceFolderId {
+    final $$SourceFoldersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceFolderId,
+      referencedTable: $db.sourceFolders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SourceFoldersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sourceFolders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DiscoveryLedgerTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DiscoveryLedgerTable,
+          DiscoveryRecord,
+          $$DiscoveryLedgerTableFilterComposer,
+          $$DiscoveryLedgerTableOrderingComposer,
+          $$DiscoveryLedgerTableAnnotationComposer,
+          $$DiscoveryLedgerTableCreateCompanionBuilder,
+          $$DiscoveryLedgerTableUpdateCompanionBuilder,
+          (DiscoveryRecord, $$DiscoveryLedgerTableReferences),
+          DiscoveryRecord,
+          PrefetchHooks Function({bool sourceFolderId})
+        > {
+  $$DiscoveryLedgerTableTableManager(
+    _$AppDatabase db,
+    $DiscoveryLedgerTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DiscoveryLedgerTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DiscoveryLedgerTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DiscoveryLedgerTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> stableIdentity = const Value.absent(),
+                Value<String?> sourceFolderId = const Value.absent(),
+                Value<String> documentUri = const Value.absent(),
+                Value<String?> parentUri = const Value.absent(),
+                Value<String> filename = const Value.absent(),
+                Value<String> mimeType = const Value.absent(),
+                Value<int> byteSize = const Value.absent(),
+                Value<DateTime?> providerAddedAt = const Value.absent(),
+                Value<DateTime> firstSeenAt = const Value.absent(),
+                Value<DateTime> eligibilityDate = const Value.absent(),
+                Value<String> dateSource = const Value.absent(),
+                Value<DateTime?> modifiedAt = const Value.absent(),
+                Value<String> metadataFingerprint = const Value.absent(),
+                Value<int> processingVersion = const Value.absent(),
+                Value<String> classification = const Value.absent(),
+                Value<double?> classificationScore = const Value.absent(),
+                Value<String> processingState = const Value.absent(),
+                Value<String?> failureReason = const Value.absent(),
+                Value<String?> sha256 = const Value.absent(),
+                Value<String?> pixelFingerprint = const Value.absent(),
+                Value<String> currentUri = const Value.absent(),
+                Value<String> stageTimingsJson = const Value.absent(),
+                Value<DateTime?> lastProcessedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DiscoveryLedgerCompanion(
+                id: id,
+                stableIdentity: stableIdentity,
+                sourceFolderId: sourceFolderId,
+                documentUri: documentUri,
+                parentUri: parentUri,
+                filename: filename,
+                mimeType: mimeType,
+                byteSize: byteSize,
+                providerAddedAt: providerAddedAt,
+                firstSeenAt: firstSeenAt,
+                eligibilityDate: eligibilityDate,
+                dateSource: dateSource,
+                modifiedAt: modifiedAt,
+                metadataFingerprint: metadataFingerprint,
+                processingVersion: processingVersion,
+                classification: classification,
+                classificationScore: classificationScore,
+                processingState: processingState,
+                failureReason: failureReason,
+                sha256: sha256,
+                pixelFingerprint: pixelFingerprint,
+                currentUri: currentUri,
+                stageTimingsJson: stageTimingsJson,
+                lastProcessedAt: lastProcessedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String stableIdentity,
+                Value<String?> sourceFolderId = const Value.absent(),
+                required String documentUri,
+                Value<String?> parentUri = const Value.absent(),
+                required String filename,
+                required String mimeType,
+                required int byteSize,
+                Value<DateTime?> providerAddedAt = const Value.absent(),
+                required DateTime firstSeenAt,
+                required DateTime eligibilityDate,
+                required String dateSource,
+                Value<DateTime?> modifiedAt = const Value.absent(),
+                required String metadataFingerprint,
+                Value<int> processingVersion = const Value.absent(),
+                Value<String> classification = const Value.absent(),
+                Value<double?> classificationScore = const Value.absent(),
+                Value<String> processingState = const Value.absent(),
+                Value<String?> failureReason = const Value.absent(),
+                Value<String?> sha256 = const Value.absent(),
+                Value<String?> pixelFingerprint = const Value.absent(),
+                required String currentUri,
+                Value<String> stageTimingsJson = const Value.absent(),
+                Value<DateTime?> lastProcessedAt = const Value.absent(),
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DiscoveryLedgerCompanion.insert(
+                id: id,
+                stableIdentity: stableIdentity,
+                sourceFolderId: sourceFolderId,
+                documentUri: documentUri,
+                parentUri: parentUri,
+                filename: filename,
+                mimeType: mimeType,
+                byteSize: byteSize,
+                providerAddedAt: providerAddedAt,
+                firstSeenAt: firstSeenAt,
+                eligibilityDate: eligibilityDate,
+                dateSource: dateSource,
+                modifiedAt: modifiedAt,
+                metadataFingerprint: metadataFingerprint,
+                processingVersion: processingVersion,
+                classification: classification,
+                classificationScore: classificationScore,
+                processingState: processingState,
+                failureReason: failureReason,
+                sha256: sha256,
+                pixelFingerprint: pixelFingerprint,
+                currentUri: currentUri,
+                stageTimingsJson: stageTimingsJson,
+                lastProcessedAt: lastProcessedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$DiscoveryLedgerTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({sourceFolderId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sourceFolderId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.sourceFolderId,
+                                referencedTable:
+                                    $$DiscoveryLedgerTableReferences
+                                        ._sourceFolderIdTable(db),
+                                referencedColumn:
+                                    $$DiscoveryLedgerTableReferences
+                                        ._sourceFolderIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$DiscoveryLedgerTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DiscoveryLedgerTable,
+      DiscoveryRecord,
+      $$DiscoveryLedgerTableFilterComposer,
+      $$DiscoveryLedgerTableOrderingComposer,
+      $$DiscoveryLedgerTableAnnotationComposer,
+      $$DiscoveryLedgerTableCreateCompanionBuilder,
+      $$DiscoveryLedgerTableUpdateCompanionBuilder,
+      (DiscoveryRecord, $$DiscoveryLedgerTableReferences),
+      DiscoveryRecord,
+      PrefetchHooks Function({bool sourceFolderId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9400,4 +12287,8 @@ class $AppDatabaseManager {
       $$ReaderProgressTableTableManager(_db, _db.readerProgress);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
+  $$SourceFoldersTableTableManager get sourceFolders =>
+      $$SourceFoldersTableTableManager(_db, _db.sourceFolders);
+  $$DiscoveryLedgerTableTableManager get discoveryLedger =>
+      $$DiscoveryLedgerTableTableManager(_db, _db.discoveryLedger);
 }

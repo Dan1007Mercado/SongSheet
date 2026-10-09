@@ -48,18 +48,30 @@ class SongMatcher {
     }
 
     final searchable = await database.searchableEditions();
+    final byEdition = <String, ({String id, double score, String? key})>{};
+    for (final row in searchable) {
+      var score = similarity(
+        line.normalizedTitle,
+        row['normalized_title']! as String,
+      );
+      for (final filename
+          in '${row['normalized_filenames'] ?? ''}'
+              .split('|')
+              .where((value) => value.isNotEmpty)) {
+        score = max(score, similarity(line.normalizedTitle, filename));
+      }
+      final candidate = (
+        id: row['edition_id']! as String,
+        score: score,
+        key: row['key_label'] as String?,
+      );
+      final current = byEdition[candidate.id];
+      if (current == null || candidate.score > current.score) {
+        byEdition[candidate.id] = candidate;
+      }
+    }
     final proposals =
-        searchable
-            .map(
-              (row) => (
-                id: row['edition_id']! as String,
-                score: similarity(
-                  line.normalizedTitle,
-                  row['normalized_title']! as String,
-                ),
-                key: row['key_label'] as String?,
-              ),
-            )
+        byEdition.values
             .where(
               (candidate) =>
                   candidate.score >= .62 &&

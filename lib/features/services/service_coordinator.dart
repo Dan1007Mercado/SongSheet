@@ -79,6 +79,40 @@ class ServiceCoordinator {
     return ServiceDraft(date: draft.date, entries: entries);
   }
 
+  Future<ServiceDraft> addEntry(
+    ServiceDraft draft,
+    String title, {
+    String? requestedKey,
+  }) async {
+    final line = SetlistLine(
+      text: title.trim(),
+      normalizedTitle: normalizeTitle(title),
+      requestedKey: requestedKey,
+    );
+    final match = await matcher.match(database, line);
+    return ServiceDraft(
+      date: draft.date,
+      entries: [
+        ...draft.entries,
+        ServiceDraftEntry(position: draft.entries.length, match: match),
+      ],
+    );
+  }
+
+  ServiceDraft removeEntry(ServiceDraft draft, int index) {
+    final remaining = [...draft.entries]..removeAt(index);
+    return ServiceDraft(
+      date: draft.date,
+      entries: [
+        for (var position = 0; position < remaining.length; position++)
+          ServiceDraftEntry(
+            position: position,
+            match: remaining[position].match,
+          ),
+      ],
+    );
+  }
+
   ServiceDraft selectEdition(ServiceDraft draft, int index, String editionId) {
     final entries = [...draft.entries];
     final old = entries[index];

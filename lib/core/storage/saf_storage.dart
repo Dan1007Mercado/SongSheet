@@ -3,10 +3,13 @@ import 'package:flutter/services.dart';
 class SafDocument {
   const SafDocument({
     required this.uri,
+    required this.stableIdentity,
+    required this.parentUri,
     required this.name,
     required this.mimeType,
     required this.size,
     required this.lastModified,
+    required this.providerAddedAt,
     required this.canRead,
     required this.canWrite,
     required this.canRename,
@@ -15,14 +18,13 @@ class SafDocument {
 
   factory SafDocument.fromMap(Map<Object?, Object?> map) => SafDocument(
     uri: map['uri']! as String,
+    stableIdentity: (map['stableIdentity'] as String?) ?? map['uri']! as String,
+    parentUri: map['parentUri'] as String?,
     name: map['name']! as String,
     mimeType: (map['mimeType'] as String?) ?? 'application/octet-stream',
     size: (map['size'] as num?)?.toInt() ?? 0,
-    lastModified: (map['lastModified'] as num?) == null
-        ? null
-        : DateTime.fromMillisecondsSinceEpoch(
-            (map['lastModified']! as num).toInt(),
-          ),
+    lastModified: _date(map['lastModified']),
+    providerAddedAt: _date(map['providerAddedAt']),
     canRead: map['canRead'] == true,
     canWrite: map['canWrite'] == true,
     canRename: map['canRename'] == true,
@@ -30,14 +32,35 @@ class SafDocument {
   );
 
   final String uri;
+  final String stableIdentity;
+  final String? parentUri;
   final String name;
   final String mimeType;
   final int size;
   final DateTime? lastModified;
+  final DateTime? providerAddedAt;
   final bool canRead;
   final bool canWrite;
   final bool canRename;
   final bool canDelete;
+}
+
+class SafFolder {
+  const SafFolder({required this.uri, required this.name});
+
+  factory SafFolder.fromMap(Map<Object?, Object?> map) => SafFolder(
+    uri: map['uri']! as String,
+    name: (map['name'] as String?) ?? 'Source folder',
+  );
+
+  final String uri;
+  final String name;
+}
+
+class SafImageRead {
+  const SafImageRead({required this.bytes, required this.sha256});
+  final Uint8List bytes;
+  final String sha256;
 }
 
 class SafStorage {
@@ -45,15 +68,30 @@ class SafStorage {
 
   static const MethodChannel _channel = MethodChannel('song_sheets/storage');
 
-  Future<String?> chooseManagedTree() =>
-      _channel.invokeMethod<String>('chooseTree');
+  Future<SafFolder?> chooseSourceFolder() async {
+    final value = await _channel.invokeMapMethod<Object?, Object?>(
+      'chooseSourceFolder',
+    );
+    return value == null ? null : SafFolder.fromMap(value);
+  }
 
-  Future<String?> persistedTree() =>
-      _channel.invokeMethod<String>('persistedTree');
+  Future<SafFolder?> legacySourceFolder() async {
+    final value = await _channel.invokeMapMethod<Object?, Object?>(
+      'legacySourceFolder',
+    );
+    return value == null ? null : SafFolder.fromMap(value);
+  }
 
-  Future<List<SafDocument>> listImages() async {
+  Future<List<SafDocument>> listImages(
+    String treeUri, {
+    required bool includeSubfolders,
+  }) async {
     final rows =
-        await _channel.invokeListMethod<Object?>('listImages') ?? const [];
+        await _channel.invokeListMethod<Object?>('listImages', {
+          'treeUri': treeUri,
+          'includeSubfolders': includeSubfolders,
+        }) ??
+        const [];
     return rows
         .map(
           (row) => SafDocument.fromMap((row! as Map).cast<Object?, Object?>()),
@@ -61,9 +99,10 @@ class SafStorage {
         .toList();
   }
 
-  Future<SafDocument> metadata(String uri) async {
+  Future<SafDocument> metadata(String uri, {String? parentUri}) async {
     final row = await _channel.invokeMapMethod<Object?, Object?>('metadata', {
       'uri': uri,
+      'parentUri': parentUri,
     });
     if (row == null) throw StateError('The document is unavailable.');
     return SafDocument.fromMap(row);
@@ -77,15 +116,47 @@ class SafStorage {
     return bytes;
   }
 
-  Future<String> rename(String uri, String displayName) async {
-    final renamed = await _channel.invokeMethod<String>('rename', {
+  Future<Uint8List> readPreview(String uri, {int maxDimension = 900}) async {
+    final bytes = await _channel.invokeMethod<Uint8List>('readPreview', {
+      'uri': uri,
+      'maxDimension': maxDimension,
+    });
+    if (bytes == null) {
+      throw StateError('The document preview returned no data.');
+    }
+    return bytes;
+  }
+
+  Future<SafImageRead> readImage(String uri) async {
+    final value = await _channel.invokeMapMethod<Object?, Object?>(
+      'readImage',
+      {'uri': uri},
+    );
+    if (value == null ||
+        value['bytes'] is! Uint8List ||
+        value['sha256'] is! String) {
+      throw StateError('The document returned incomplete image data.');
+    }
+    return SafImageRead(
+      bytes: value['bytes']! as Uint8List,
+      sha256: value['sha256']! as String,
+    );
+  }
+
+  Future<SafDocument> rename(
+    String uri,
+    String displayName, {
+    required String parentUri,
+  }) async {
+    final renamed = await _channel.invokeMapMethod<Object?, Object?>('rename', {
       'uri': uri,
       'name': displayName,
+      'parentUri': parentUri,
     });
     if (renamed == null) {
       throw StateError('The provider did not return the renamed document.');
     }
-    return renamed;
+    return SafDocument.fromMap(renamed);
   }
 
   Future<bool> delete(String uri) async =>
@@ -103,12 +174,14 @@ class SafStorage {
 
   Future<String?> pickImage() => _channel.invokeMethod<String>('pickImage');
 
-  Future<String?> importIntoManagedTree(
+  Future<String?> importIntoTree(
     String sourceUri,
     String preferredName,
+    String treeUri,
   ) => _channel.invokeMethod<String>('copyIntoTree', {
     'uri': sourceUri,
     'name': preferredName,
+    'treeUri': treeUri,
   });
 
   Future<String?> createBackup(String suggestedName, Uint8List bytes) =>
@@ -119,4 +192,9 @@ class SafStorage {
 
   Future<Uint8List?> openBackup() =>
       _channel.invokeMethod<Uint8List>('openBackup');
+}
+
+DateTime? _date(Object? value) {
+  if (value is! num || value.toInt() <= 0) return null;
+  return DateTime.fromMillisecondsSinceEpoch(value.toInt());
 }

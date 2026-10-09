@@ -8,20 +8,44 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
 import '../../core/database/app_database.dart';
 import '../../core/image_processing/image_tools.dart';
+import '../library/library_entry.dart';
 
 class ReaderScreen extends ConsumerStatefulWidget {
   const ReaderScreen._({
     required this.serviceRecord,
     required this.standaloneAsset,
+    required this.libraryEntries,
+    required this.initialLibraryEntry,
   });
 
   factory ReaderScreen.service({required ServiceRecord service}) =>
-      ReaderScreen._(serviceRecord: service, standaloneAsset: null);
+      ReaderScreen._(
+        serviceRecord: service,
+        standaloneAsset: null,
+        libraryEntries: null,
+        initialLibraryEntry: 0,
+      );
   factory ReaderScreen.standalone({required AssetRecord asset}) =>
-      ReaderScreen._(serviceRecord: null, standaloneAsset: asset);
+      ReaderScreen._(
+        serviceRecord: null,
+        standaloneAsset: asset,
+        libraryEntries: null,
+        initialLibraryEntry: 0,
+      );
+  factory ReaderScreen.library({
+    required List<LibraryEntry> entries,
+    required int initialEntry,
+  }) => ReaderScreen._(
+    serviceRecord: null,
+    standaloneAsset: null,
+    libraryEntries: entries,
+    initialLibraryEntry: initialEntry,
+  );
 
   final ServiceRecord? serviceRecord;
   final AssetRecord? standaloneAsset;
+  final List<LibraryEntry>? libraryEntries;
+  final int initialLibraryEntry;
 
   @override
   ConsumerState<ReaderScreen> createState() => _ReaderScreenState();
@@ -56,7 +80,30 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
   Future<void> _load() async {
     try {
-      if (widget.standaloneAsset != null) {
+      if (widget.libraryEntries != null) {
+        final pages = <_ReaderPage>[];
+        for (
+          var entryIndex = 0;
+          entryIndex < widget.libraryEntries!.length;
+          entryIndex++
+        ) {
+          final entry = widget.libraryEntries![entryIndex];
+          if (entryIndex < widget.initialLibraryEntry) {
+            _index += entry.assets.length;
+          }
+          for (var page = 0; page < entry.assets.length; page++) {
+            pages.add(
+              _ReaderPage(
+                entryId: entry.id,
+                title: entry.title,
+                pageInEntry: page,
+                asset: entry.assets[page],
+              ),
+            );
+          }
+        }
+        _pages = pages;
+      } else if (widget.standaloneAsset != null) {
         _pages = [
           _ReaderPage(
             entryId: 'standalone',
@@ -147,6 +194,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       appBar: AppBar(
         title: Text(
           widget.serviceRecord?.displayName ??
+              (widget.libraryEntries != null ? 'Song Library' : null) ??
               widget.standaloneAsset?.extractedTitle ??
               'Reader',
         ),
@@ -230,7 +278,14 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   VoidCallback? _previousSong(List<_ReaderPage> pages) {
     final entry = pages[_index].entryId;
     for (var index = _index - 1; index >= 0; index--) {
-      if (pages[index].entryId != entry) return () => _go(index);
+      if (pages[index].entryId != entry) {
+        final previousEntry = pages[index].entryId;
+        while (index > 0 && pages[index - 1].entryId == previousEntry) {
+          index--;
+        }
+        final target = index;
+        return () => _go(target);
+      }
     }
     return null;
   }
@@ -272,15 +327,29 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     if (source == null) return;
     try {
       final sourceMetadata = await storage.metadata(source);
-      final newUri = await storage.importIntoManagedTree(
+      final database = ref.read(databaseProvider);
+      final destinations = await database.select(database.sourceFolders).get();
+      if (destinations.isEmpty) {
+        throw StateError(
+          'Add a writable source folder in Settings before relinking.',
+        );
+      }
+      final newUri = await storage.importIntoTree(
         source,
         sourceMetadata.name,
+        destinations.first.treeUri,
       );
       if (newUri == null) return;
       final bytes = await storage.readBytes(newUri);
       final facts = await Isolate.run(() => inspectDecodedPixels(bytes));
-      final metadata = await storage.metadata(newUri);
-      final database = ref.read(databaseProvider);
+      final metadata = await storage.metadata(
+        newUri,
+        parentUri: destinations.first.treeUri,
+      );
+      final discovery =
+          await (database.select(database.discoveryLedger)
+                ..where((row) => row.currentUri.equals(asset.documentUri)))
+              .getSingleOrNull();
       await (database.update(
         database.sheetAssets,
       )..where((row) => row.id.equals(asset.id))).write(
@@ -300,6 +369,24 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
           updatedAt: Value(DateTime.now()),
         ),
       );
+      if (discovery != null) {
+        await (database.update(
+          database.discoveryLedger,
+        )..where((row) => row.id.equals(discovery.id))).write(
+          DiscoveryLedgerCompanion(
+            stableIdentity: Value(metadata.stableIdentity),
+            sourceFolderId: Value(destinations.first.id),
+            documentUri: Value(newUri),
+            currentUri: Value(newUri),
+            parentUri: Value(metadata.parentUri),
+            filename: Value(metadata.name),
+            metadataFingerprint: Value(
+              '${metadata.size}:${metadata.lastModified?.millisecondsSinceEpoch ?? 0}',
+            ),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+      }
       final updated = await (database.select(
         database.sheetAssets,
       )..where((row) => row.id.equals(asset.id))).getSingle();

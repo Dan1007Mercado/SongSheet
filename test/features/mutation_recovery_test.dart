@@ -29,24 +29,32 @@ class FakeStorage extends SafStorage {
       aliases[secondUri] == firstUri;
 
   @override
-  Future<String> rename(String uri, String displayName) async {
+  Future<SafDocument> rename(
+    String uri,
+    String displayName, {
+    required String parentUri,
+  }) async {
     final target = 'content://fixture/$displayName';
     files[target] = files.remove(uri)!;
-    return target;
+    return metadata(target, parentUri: parentUri);
   }
 
   @override
-  Future<SafDocument> metadata(String uri) async => SafDocument(
-    uri: uri,
-    name: uri.split('/').last,
-    mimeType: 'image/png',
-    size: files[uri]!.length,
-    lastModified: DateTime(2026, 10, 9),
-    canRead: true,
-    canWrite: true,
-    canRename: true,
-    canDelete: true,
-  );
+  Future<SafDocument> metadata(String uri, {String? parentUri}) async =>
+      SafDocument(
+        stableIdentity: uri,
+        uri: uri,
+        parentUri: parentUri ?? 'fixture-parent',
+        name: uri.split('/').last,
+        mimeType: 'image/png',
+        size: files[uri]!.length,
+        lastModified: DateTime(2026, 10, 9),
+        providerAddedAt: DateTime(2026, 10, 9),
+        canRead: true,
+        canWrite: true,
+        canRename: true,
+        canDelete: true,
+      );
 }
 
 void main() {
@@ -73,6 +81,7 @@ void main() {
         'duplicate': Uint8List.fromList(bytes),
       });
       await _insertRetained(database, now, digest);
+      await _insertEligibleDiscovery(database, now, 'duplicate');
       await database
           .into(database.fileOperations)
           .insert(
@@ -92,7 +101,7 @@ void main() {
         database,
         storage,
         ocr,
-      ).recoverPendingOperations();
+      ).recoverPendingOperations(config: _configuration(now));
 
       expect(storage.files, contains('retained'));
       expect(storage.files, isNot(contains('duplicate')));
@@ -112,6 +121,7 @@ void main() {
       'duplicate': original,
     });
     await _insertRetained(database, now, digest);
+    await _insertEligibleDiscovery(database, now, 'duplicate');
     await database
         .into(database.fileOperations)
         .insert(
@@ -127,7 +137,11 @@ void main() {
           ),
         );
 
-    await ImportCoordinator(database, storage, ocr).recoverPendingOperations();
+    await ImportCoordinator(
+      database,
+      storage,
+      ocr,
+    ).recoverPendingOperations(config: _configuration(now));
 
     expect(storage.files, contains('duplicate'));
     expect(
@@ -145,6 +159,7 @@ void main() {
       aliases: const {'alias': 'retained'},
     );
     await _insertRetained(database, now, digest);
+    await _insertEligibleDiscovery(database, now, 'alias');
     await database
         .into(database.fileOperations)
         .insert(
@@ -160,10 +175,54 @@ void main() {
           ),
         );
 
-    await ImportCoordinator(database, storage, ocr).recoverPendingOperations();
+    await ImportCoordinator(
+      database,
+      storage,
+      ocr,
+    ).recoverPendingOperations(config: _configuration(now));
 
     expect(storage.files, contains('alias'));
   });
+}
+
+ScanConfiguration _configuration(DateTime day) =>
+    ScanConfiguration(startDate: day, endDate: day, endAtToday: false);
+
+Future<void> _insertEligibleDiscovery(
+  AppDatabase database,
+  DateTime now,
+  String uri,
+) async {
+  await database
+      .into(database.sourceFolders)
+      .insert(
+        SourceFoldersCompanion.insert(
+          id: 'source',
+          treeUri: 'content://fixture/tree',
+          displayName: 'Fixture',
+          addedAt: now,
+        ),
+      );
+  await database
+      .into(database.discoveryLedger)
+      .insert(
+        DiscoveryLedgerCompanion.insert(
+          id: 'discovery-$uri',
+          stableIdentity: 'identity-$uri',
+          sourceFolderId: const Value('source'),
+          documentUri: uri,
+          parentUri: const Value('fixture-parent'),
+          filename: '$uri.png',
+          mimeType: 'image/png',
+          byteSize: 4,
+          firstSeenAt: now,
+          eligibilityDate: now,
+          dateSource: 'first_seen',
+          metadataFingerprint: '$uri:4',
+          currentUri: uri,
+          updatedAt: now,
+        ),
+      );
 }
 
 Future<void> _insertRetained(

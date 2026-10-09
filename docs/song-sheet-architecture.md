@@ -6,8 +6,8 @@ Build an Android-first Flutter app that manages song-sheet images locally.
 
 Primary workflows:
 
-1. Images → duplicate checking → title OCR → conditional enhancement → real file renaming → persistent library.
-2. Service-list image → ordered title extraction → local library matching → missing/ambiguous slots → saved Sunday collection.
+1. Authorized folders → date-scoped metadata discovery → offline sheet classification → duplicate checking → title OCR → conditional enhancement → real file renaming → persistent library.
+2. One selected service-list image → geometry-aware ordered title extraction → editable rows → local library matching → missing/ambiguous slots → saved Sunday collection.
 3. Saved collection → scrolling, zooming, page/song navigation.
 
 All installed-app features work offline.
@@ -15,8 +15,8 @@ All installed-app features work offline.
 ## Architecture
 
 Presentation:
-- Folder setup.
-- Library and search.
+- Multi-folder and inclusive date-range setup.
+- Confirmed-only Song Library and search.
 - Import progress.
 - OCR and edition review.
 - Services.
@@ -41,6 +41,8 @@ Domain:
 - ServiceEntry.
 - ImportJob.
 - FileOperation.
+- SourceFolder.
+- DiscoveryRecord.
 
 Infrastructure:
 - Drift/SQLite repositories.
@@ -73,17 +75,21 @@ Keep native storage integration under the Android application source.
 
 ## Master storage
 
-Select a local folder such as Documents/SongSheets once.
+Authorize one or more local folders such as Documents/SongSheets. Persist every SAF grant. Subfolder discovery is opt-in per source.
 
-Persist its SAF read/write grant. Enumerate and manage existing images in place.
+Enumerate and manage existing images in place. Never expand discovery to gallery/DCIM/Downloads roots that the user did not explicitly authorize.
 
 Each retained image has one stable asset ID and one canonical URI. Its filename may change without changing its identity.
+
+The storage bridge returns a provider-stable identity, current URI, explicit parent URI, provider-added date when exposed, last-modified metadata, size, MIME type, and capabilities. Rename collision checks occur in the explicit parent, and returned URI/identity metadata replaces the old values.
+
+All native provider queries, enumeration, reads, preview decoding, hashing, rename, delete, and copy operations run on a background executor. The Android main thread only launches pickers and marshals results.
 
 SQLite stores metadata and references, not full image blobs.
 
 Temporary OCR files and thumbnails may exist in bounded cache. They are not additional master images.
 
-If importing outside the managed folder requires copying, make source-retention behavior explicit. Reading an image does not automatically grant deletion permission.
+If importing outside the authorized folders requires copying, make source-retention behavior explicit. Reading an image does not automatically grant deletion permission.
 
 ## Data model
 
@@ -160,6 +166,28 @@ reader_progress:
 - page position
 - timestamps
 
+source_folders:
+- id
+- tree_uri
+- display_name
+- include_subfolders
+- added_at
+
+discovery_ledger:
+- id and stable provider identity
+- source_folder_id
+- document_uri, current_uri, and parent_uri
+- filename, MIME type, byte size, and modified timestamp
+- nullable provider_added_at and persistent first_seen_at
+- eligibility_date and date_source
+- metadata fingerprint and processing version
+- classification and score
+- processing state and failure reason
+- nullable byte/pixel fingerprints
+- per-stage timings and processing timestamps
+
+Discovery states are: discovered, excluded, non_song_sheet, uncertain, processing, completed, duplicate_deleted, and failed. Every examined JPEG/PNG has a ledger row even when it never becomes a library asset.
+
 Enable foreign keys and schema migrations.
 
 Index normalized titles, hashes, pending jobs, and ordered asset queries.
@@ -170,18 +198,28 @@ Do not make title or title/key a destructive uniqueness constraint.
 
 ## Import pipeline
 
-1. Discover a new/changed image.
-2. Confirm the file is readable and stable, avoiding incomplete downloads.
-3. Stream SHA-256.
-4. Check for a verified exact duplicate.
-5. Decode and normalize orientation.
-6. Extract header title candidates.
-7. Retry with limited preprocessing only when necessary.
-8. Persist recognized metadata or pending review.
-9. Rename the actual file when the title is credible.
-10. Record completed state and clean temporary files.
+1. Enumerate metadata from each explicitly authorized source; recurse only when enabled.
+2. Resolve the ledger row by stable identity, falling back to URI.
+3. Choose an eligibility date from provider-added metadata or the persisted first-seen date and apply inclusive local dates.
+4. Persist excluded rows without reading image content. Skip unchanged terminal rows without preview, hash, decode, or OCR work.
+5. Read a bounded preview and classify from staff-line/layout evidence offline.
+6. Preserve non-sheets unchanged; send uncertain classifications to review.
+7. For confirmed sheets only, stream the full image once while computing SHA-256 and check byte duplicates.
+8. Decode/orientation-normalize once for the exact-pixel fingerprint and normal header crop; check exact-pixel duplicates.
+9. OCR the normal header, create enhancements lazily only after weak results, and expand to the original only as a final bounded fallback.
+10. Persist recognized metadata or pending title review.
+11. Revalidate folder/date eligibility and fingerprints before a real rename or exact-duplicate deletion.
+12. Update the asset, ledger identity/URI/name/fingerprint, mutation journal, and stage timings.
 
 Process mutations through a durable serialized queue.
+
+Changing a date range or processing version does not implicitly reprocess unchanged terminal rows. Settings exposes an explicit reprocess action.
+
+## Classification boundary
+
+The library contains confirmed song sheets only. Classification occurs before full OCR and before any destructive operation. Staff systems and page structure are positive evidence; recognized words by themselves do not make an image a song sheet.
+
+Confident non-sheets remain in the ledger and remain physically untouched. Uncertain rows enter review. The review UI can override both uncertain and non-song decisions; confirmation resumes the normal guarded import pipeline.
 
 ## OCR boundaries
 
@@ -229,9 +267,11 @@ Songs for Sunday (YYYY-MM-DD)
 
 OCR the list image into ordered editable entries.
 
-Preserve numbering, continuation lines, repeated songs, and column reading order.
+Only the image selected for that Sunday import is read. Creating a collection never scans authorized source folders.
 
-Match exact normalized titles and aliases, then key/version constraints.
+Preserve numbering, continuation lines, repeated songs, and column reading order. Cluster OCR geometry into columns left-to-right, sort top-to-bottom inside each column, then join nearby continuation lines. Users can edit, insert, remove, and reorder entries before saving.
+
+Match exact normalized titles, aliases, and normalized generated filenames, then key/version constraints. Filename similarity may propose fuzzy candidates but cannot silently select them.
 
 A missing song remains a labeled empty slot. An ambiguous song remains unresolved until edition selection.
 
@@ -250,6 +290,12 @@ Support scrolling, pinch zoom, pan, next/previous song/page, and position restor
 Keep missing entries visible. Show relinking when a URI is unavailable.
 
 Use bounded adjacent-page prefetch and thumbnail caching.
+
+Song Library navigation is built from the active filtered result list. Sunday Collection navigation is independently built from saved service-entry order; one mode never borrows the other's navigation set.
+
+## Performance observability
+
+The discovery ledger stores timings for eligibility, classification, stream read/hash, preprocessing/enhancement, OCR, rename, and duplicate deletion. Settings stores and displays last-scan discovery and total timing/count summaries. These measurements diagnose regressions without retaining extra full-resolution images.
 
 ## Persistence
 

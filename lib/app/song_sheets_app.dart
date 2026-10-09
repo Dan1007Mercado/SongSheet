@@ -52,7 +52,7 @@ class _AppShellState extends State<AppShell> {
           NavigationDestination(
             icon: Icon(Icons.event_note_outlined),
             selectedIcon: Icon(Icons.event_note),
-            label: 'Services',
+            label: 'Sunday Collections',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

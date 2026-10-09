@@ -4,6 +4,7 @@ import '../core/database/app_database.dart';
 import '../core/ocr/ocr_service.dart';
 import '../core/storage/saf_storage.dart';
 import '../features/import/import_coordinator.dart';
+import '../features/library/library_entry.dart';
 import '../features/services/service_coordinator.dart';
 import '../features/services/song_matcher.dart';
 import '../features/settings/backup_service.dart';
@@ -53,6 +54,26 @@ final libraryAssetsProvider = StreamProvider<List<AssetRecord>>((ref) {
 
 final pendingAssetsProvider = StreamProvider<List<AssetRecord>>(
   (ref) => ref.watch(databaseProvider).watchPendingReview(),
+);
+
+final libraryEntriesProvider = StreamProvider<List<LibraryEntry>>((ref) {
+  final database = ref.watch(databaseProvider);
+  final query = ref.watch(libraryQueryProvider);
+  return database
+      .watchAssets(query)
+      .asyncMap((assets) => buildLibraryEntries(database, assets));
+});
+
+final uncertainDiscoveriesProvider = StreamProvider<List<DiscoveryRecord>>(
+  (ref) => ref.watch(databaseProvider).watchUncertainDiscoveries(),
+);
+
+final nonSongDiscoveriesProvider = StreamProvider<List<DiscoveryRecord>>(
+  (ref) => ref.watch(databaseProvider).watchNonSongDiscoveries(),
+);
+
+final sourceFoldersProvider = StreamProvider<List<SourceFolderRecord>>(
+  (ref) => ref.watch(databaseProvider).watchSourceFolders(),
 );
 
 final servicesProvider = StreamProvider<List<ServiceRecord>>(

@@ -1,6 +1,6 @@
 ---
 name: build-offline-song-sheets
-description: Build, debug, and optimize an Android Flutter song-sheet organizer using bundled Google ML Kit OCR, actual image-file renaming, automatic exact-duplicate deletion, SQLite persistence, service-list image matching, and a zoomable offline reader.
+description: Build, debug, and optimize an Android Flutter song-sheet organizer with scoped multi-folder discovery, an incremental ledger, offline sheet classification, bundled Google ML Kit OCR, safe real-file mutations, virtual Sunday collections, and a zoomable offline reader.
 ---
 
 # Build Offline Song Sheets
@@ -36,11 +36,17 @@ Distinguish development dependency downloads from installed-app runtime requirem
 
 ## Storage and permissions
 
-Select a dedicated local song folder through ACTION_OPEN_DOCUMENT_TREE and retain its read/write URI grant.
+Let the user authorize one or more local song folders through ACTION_OPEN_DOCUMENT_TREE and retain each read/write URI grant. Keep subfolder traversal off unless the user enables it for that folder.
+
+Never scan broad gallery or Downloads locations implicitly. A library refresh may enumerate only explicitly authorized folders. Sunday-list import uses exactly the single image chosen by the user and must not trigger source-folder discovery.
 
 Use existing authorized images in place. Store content URIs as opaque identifiers, not filesystem paths.
 
 Implement native enumeration, metadata, reading, rename, deletion, and capability checks. Update stored URIs when renaming returns a new URI.
+
+Pass the enumerated document's explicit parent URI into rename and collision checks. Do not reconstruct or guess the parent from a tree URI.
+
+Run provider queries, directory enumeration, stream I/O, hashing, preview decoding, rename, delete, and copy work on a native background executor. Only picker launch/result delivery and Flutter result marshaling belong on the Android main thread.
 
 Do not claim silent access to every gallery/download file. Respect Android's Downloads-root restrictions, read-only providers, and revoked grants.
 
@@ -49,6 +55,24 @@ Normal operations inside supported writable storage must not show an app confirm
 If importing from an external read-only source requires a copy, explicitly report that the source remains. Never claim the external duplicate was deleted when permission prevented it.
 
 Keep one permanent full-resolution master per retained asset. Use bounded temporary crops and thumbnail caches.
+
+## Scoped discovery and ledger
+
+Persist a discovery row for every examined JPEG/PNG, including images that never become library assets. Use a stable provider identity when available and retain both the current URI and explicit parent URI.
+
+Support these durable states: discovered, excluded, non_song_sheet, uncertain, processing, completed, duplicate_deleted, and failed.
+
+Discovery is metadata-first. Determine an inclusive local-calendar eligibility date from the provider's added/import date when exposed; otherwise persist the first-seen date. Do not substitute last-modified time for capture/download/import time. Use last-modified only as part of the change fingerprint.
+
+Skip unchanged terminal ledger rows without preview reads, hashing, full decode, or OCR. Do not force a full rescan after a processing-version change; provide an explicit reprocess action instead. Update ledger identity, URI, name, and metadata fingerprint after a successful rename so the renamed file is not rediscovered as new.
+
+Recheck current source-folder membership and the active date range immediately before every rename, deletion, or destructive recovery retry.
+
+## Offline sheet classification
+
+Before hashing the full file, full-resolution decode, OCR, rename, or deletion, read a bounded preview and classify whether it looks like a song sheet. Classification must use offline visual/layout evidence such as repeated five-line staff systems and page/header structure; OCR text alone is not sufficient evidence.
+
+Keep confident non-sheets unchanged and out of the library. Route uncertain images to review. Provide a correction path for both uncertain and confidently rejected classifications. Only confirmed song sheets may enter the library or become eligible for rename/duplicate cleanup.
 
 ## Title OCR
 
@@ -61,6 +85,8 @@ Identify title candidates using position, relative text size, multiline grouping
 Retain raw OCR separately from normalized search text.
 
 Run normal OCR first. For weak results only, try a bounded sequence of contrast, brightness/gamma, grayscale, and modest sharpening/denoising variants.
+
+Decode a confirmed full image once for orientation-normalized facts, exact-pixel fingerprinting, and the normal OCR header crop. Generate each enhanced header lazily only after the previous OCR attempt is weak. Hash the native input stream while reading it instead of making a separate full-file pass.
 
 Do not overwrite the original image with preprocessing results.
 
@@ -111,12 +137,16 @@ If deletion fails, keep cleanup pending and report the physical result accuratel
 
 ## Service collections
 
+The insert step reads only the chosen list image. Make extracted entries editable, addable, removable, and reorderable before save. Reconstruct reading order from OCR geometry: columns left-to-right, lines top-to-bottom within a column, with nearby continuation lines grouped into one entry.
+
 Implement:
 Create service → choose date → insert song-list image → OCR ordered rows → review → match library → retain missing/ambiguous slots → save.
 
 Preserve list order, repeated songs, multiline titles, and page order.
 
 Match exact normalized titles and aliases first. Apply requested key/version constraints.
+
+Include normalized generated filenames in exact and fuzzy local matching.
 
 Use fuzzy matching to propose candidates, not silently select a different song.
 
@@ -147,6 +177,8 @@ Support app restart, reboot, and normal updates. Provide backup/restore for cata
 
 Process only new/changed images. Hash streams, preprocess off the UI isolate, use a serialized OCR queue, reuse the recognizer during batches, and bound caches.
 
+Record per-stage timings for discovery, eligibility, classification, read/hash, preprocessing/enhancement, OCR, rename, duplicate deletion, and total scan time where those stages run. Surface the latest scan counts and timings in Settings.
+
 Refresh incrementally on launch/resume and provide manual refresh. Do not promise instant background cleanup after Android kills the app.
 
 ## Verification
@@ -156,6 +188,10 @@ Run code generation when needed, formatting, flutter analyze, meaningful tests, 
 Test filesystem mutations only in disposable fixture folders.
 
 Cover:
+- Inclusive date boundaries and out-of-range images receiving no content reads or mutations.
+- Unchanged completed/non-sheet/uncertain/failed rows skipping expensive work.
+- Renamed documents resolving to the same ledger row.
+- Staff-layout classification, unrelated-image rejection, and manual correction paths.
 - Exact duplicates and equal pixels with different metadata.
 - Same title with different keys.
 - Same title/key with different pages or arrangements.
@@ -164,6 +200,8 @@ Cover:
 - Filename collisions and revoked access.
 - Crash recovery after rename/deletion.
 - Missing/ambiguous/repeated service entries.
+- Column-aware and multiline service-list ordering, and single-selected-image import scope.
+- Confirmed-only library grouping and navigation within the active filtered result set.
 - Collection saving without full-image copies.
 - Reader progress persistence.
 

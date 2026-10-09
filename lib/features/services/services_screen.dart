@@ -55,7 +55,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
   Widget build(BuildContext context) {
     final services = ref.watch(servicesProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Services')),
+      appBar: AppBar(title: const Text('Sunday Collections')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _busy ? null : _create,
         icon: _busy
@@ -64,7 +64,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.document_scanner_outlined),
-        label: const Text('Create service'),
+        label: const Text('Create Sunday collection'),
       ),
       body: services.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -168,6 +168,10 @@ class _ServiceDraftScreenState extends ConsumerState<ServiceDraftScreen> {
             runSpacing: 8,
             children: [
               Chip(
+                avatar: const Icon(Icons.format_list_numbered, size: 18),
+                label: Text('${_draft.entries.length} extracted'),
+              ),
+              Chip(
                 avatar: const Icon(Icons.check_circle_outline, size: 18),
                 label: Text('${_draft.matched} matched'),
               ),
@@ -196,6 +200,11 @@ class _ServiceDraftScreenState extends ConsumerState<ServiceDraftScreen> {
                     key: ValueKey(_draft.entries[index]),
                     entry: _draft.entries[index],
                     onEdit: () => _edit(index),
+                    onRemove: () => setState(() {
+                      _draft = ref
+                          .read(serviceCoordinatorProvider)
+                          .removeEntry(_draft, index);
+                    }),
                     onSelectCandidate: (id) => setState(() {
                       _draft = ref
                           .read(serviceCoordinatorProvider)
@@ -203,6 +212,17 @@ class _ServiceDraftScreenState extends ConsumerState<ServiceDraftScreen> {
                     }),
                   ),
                 ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: _add,
+              icon: const Icon(Icons.add),
+              label: const Text('Add missing row'),
+            ),
+          ),
         ),
         SafeArea(
           top: false,
@@ -297,6 +317,53 @@ class _ServiceDraftScreenState extends ConsumerState<ServiceDraftScreen> {
     if (mounted) setState(() => _draft = next);
   }
 
+  Future<void> _add() async {
+    final title = TextEditingController();
+    final key = TextEditingController();
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add song-list row'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: title,
+              autofocus: true,
+              decoration: const InputDecoration(labelText: 'Requested title'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: key,
+              decoration: const InputDecoration(
+                labelText: 'Requested key (optional)',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Add & match'),
+          ),
+        ],
+      ),
+    );
+    if (accepted != true || title.text.trim().isEmpty) return;
+    final next = await ref
+        .read(serviceCoordinatorProvider)
+        .addEntry(
+          _draft,
+          title.text,
+          requestedKey: key.text.trim().isEmpty ? null : key.text.trim(),
+        );
+    if (mounted) setState(() => _draft = next);
+  }
+
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
@@ -319,10 +386,12 @@ class _DraftTile extends StatelessWidget {
     super.key,
     required this.entry,
     required this.onEdit,
+    required this.onRemove,
     required this.onSelectCandidate,
   });
   final ServiceDraftEntry entry;
   final VoidCallback onEdit;
+  final VoidCallback onRemove;
   final ValueChanged<String> onSelectCandidate;
 
   @override
@@ -362,10 +431,19 @@ class _DraftTile extends StatelessWidget {
               ),
           ],
         ),
-        trailing: IconButton(
-          onPressed: onEdit,
-          icon: const Icon(Icons.edit_outlined),
-          tooltip: 'Edit and rematch',
+        trailing: Wrap(
+          children: [
+            IconButton(
+              onPressed: onEdit,
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit and rematch',
+            ),
+            IconButton(
+              onPressed: onRemove,
+              icon: const Icon(Icons.remove_circle_outline),
+              tooltip: 'Remove row',
+            ),
+          ],
         ),
       ),
     );

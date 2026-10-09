@@ -5,6 +5,38 @@ import 'package:image/image.dart' as img;
 import 'package:song_sheets/core/image_processing/image_tools.dart';
 
 void main() {
+  test('staff systems classify as a song sheet without OCR text', () {
+    final sheet = img.Image(width: 600, height: 800);
+    img.fill(sheet, color: img.ColorRgb8(255, 255, 255));
+    for (final origin in [180, 430]) {
+      for (var line = 0; line < 5; line++) {
+        img.drawLine(
+          sheet,
+          x1: 35,
+          y1: origin + line * 10,
+          x2: 565,
+          y2: origin + line * 10,
+          color: img.ColorRgb8(0, 0, 0),
+        );
+      }
+    }
+
+    final result = classifyPreview(Uint8List.fromList(img.encodePng(sheet)));
+
+    expect(result.classification, SheetClassification.songSheet);
+    expect(result.staffGroups, greaterThanOrEqualTo(2));
+  });
+
+  test('an unrelated color image is rejected before OCR', () {
+    final photo = img.Image(width: 320, height: 240);
+    img.fill(photo, color: img.ColorRgb8(24, 130, 220));
+
+    final result = classifyPreview(Uint8List.fromList(img.encodePng(photo)));
+
+    expect(result.classification, SheetClassification.nonSongSheet);
+    expect(result.staffGroups, 0);
+  });
+
   test(
     'equal decoded pixels have equal fingerprints despite PNG encoding metadata',
     () {

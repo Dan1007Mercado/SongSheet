@@ -5,6 +5,7 @@ import '../../app/providers.dart';
 import '../../core/database/app_database.dart';
 import '../import/import_coordinator.dart';
 import '../reader/reader_screen.dart';
+import 'library_entry.dart';
 
 class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
@@ -15,7 +16,6 @@ class LibraryScreen extends ConsumerStatefulWidget {
 
 class _LibraryScreenState extends ConsumerState<LibraryScreen>
     with WidgetsBindingObserver {
-  String? _tree;
   bool _busy = false;
   ImportProgress? _progress;
 
@@ -23,11 +23,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    Future<void>(() async {
-      final tree = await ref.read(storageProvider).persistedTree();
-      if (mounted) setState(() => _tree = tree);
-      if (tree != null) await _refresh(silent: true);
-    });
+    Future<void>(() => _refresh(silent: true));
   }
 
   @override
@@ -38,20 +34,25 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _tree != null && !_busy) {
-      _refresh(silent: true);
-    }
-  }
-
-  Future<void> _chooseFolder() async {
-    final tree = await ref.read(storageProvider).chooseManagedTree();
-    if (tree == null || !mounted) return;
-    setState(() => _tree = tree);
-    await _refresh();
+    if (state == AppLifecycleState.resumed && !_busy) _refresh(silent: true);
   }
 
   Future<void> _refresh({bool silent = false}) async {
-    if (_tree == null || _busy) return;
+    if (_busy) return;
+    final folders = await ref
+        .read(databaseProvider)
+        .select(ref.read(databaseProvider).sourceFolders)
+        .get();
+    if (folders.isEmpty) {
+      if (!silent && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Add an authorized source folder in Settings first.'),
+          ),
+        );
+      }
+      return;
+    }
     setState(() {
       _busy = true;
       _progress = silent
@@ -59,7 +60,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
           : const ImportProgress(
               completed: 0,
               total: 0,
-              message: 'Starting scan…',
+              message: 'Starting scoped scan…',
             );
     });
     try {
@@ -72,7 +73,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
           );
       if (!mounted || silent) return;
       final message =
-          '${result.imported} added, ${result.duplicatesDeleted} exact duplicates deleted, ${result.pendingReview} need review'
+          '${result.imported} added, ${result.nonSongSheets} non-sheets skipped, '
+          '${result.excluded} outside range, ${result.unchangedSkipped} unchanged, '
+          '${result.duplicatesDeleted} exact duplicates deleted, ${result.pendingReview} need review'
           '${result.failures.isEmpty ? '' : ', ${result.failures.length} failed'}';
       ScaffoldMessenger.of(
         context,
@@ -81,7 +84,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Refresh failed: $error'),
+            content: Text('Scoped scan failed: $error'),
             showCloseIcon: true,
           ),
         );
@@ -96,80 +99,55 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     }
   }
 
-  Future<void> _importExternal() async {
-    if (_tree == null) return _chooseFolder();
-    final storage = ref.read(storageProvider);
-    final uri = await storage.pickImage();
-    if (uri == null) return;
-    try {
-      final metadata = await storage.metadata(uri);
-      await storage.importIntoManagedTree(uri, metadata.name);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Copied into the managed folder. The external source remains unchanged.',
-            ),
-          ),
-        );
-      }
-      await _refresh(silent: true);
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Import failed: $error')));
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final assets = ref.watch(libraryAssetsProvider);
-    final pending = ref.watch(pendingAssetsProvider).valueOrNull?.length ?? 0;
+    final entries = ref.watch(libraryEntriesProvider);
+    final sourceCount =
+        ref.watch(sourceFoldersProvider).valueOrNull?.length ?? 0;
+    final pendingTitles =
+        ref.watch(pendingAssetsProvider).valueOrNull?.length ?? 0;
+    final uncertain =
+        ref.watch(uncertainDiscoveriesProvider).valueOrNull?.length ?? 0;
+    final reviewCount = pendingTitles + uncertain;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Song library'),
+        title: const Text('Song Library'),
         actions: [
-          if (pending > 0)
-            Badge(
-              label: Text('$pending'),
-              child: IconButton(
-                onPressed: _showReviewQueue,
-                icon: const Icon(Icons.rate_review_outlined),
-                tooltip: 'Review OCR',
+          Badge(
+            isLabelVisible: reviewCount > 0,
+            label: Text('$reviewCount'),
+            child: IconButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const ReviewQueueScreen(),
+                ),
               ),
+              icon: const Icon(Icons.rate_review_outlined),
+              tooltip: 'Review classifications and titles',
             ),
+          ),
           IconButton(
             onPressed: _busy ? null : () => _refresh(),
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh folder',
+            tooltip: 'Scan configured sources',
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _busy ? null : _importExternal,
-        icon: const Icon(Icons.add_photo_alternate_outlined),
-        label: const Text('Import'),
-      ),
       body: Column(
         children: [
-          if (_tree == null)
-            MaterialBanner(
-              content: const Text(
-                'Choose a dedicated local folder. Song Sheets will retain read/write access and manage its images in place.',
+          if (sourceCount == 0)
+            const MaterialBanner(
+              content: Text(
+                'No source folders are configured. Add one in Settings and choose its date range before scanning.',
               ),
-              actions: [
-                FilledButton(
-                  onPressed: _chooseFolder,
-                  child: const Text('Choose folder'),
-                ),
-              ],
+              actions: [SizedBox.shrink()],
             ),
           if (_busy)
             ListTile(
               leading: const CircularProgressIndicator(),
-              title: Text(_progress?.message ?? 'Refreshing…'),
+              title: Text(
+                _progress?.message ?? 'Comparing lightweight metadata…',
+              ),
               subtitle: _progress == null || _progress!.total == 0
                   ? null
                   : LinearProgressIndicator(
@@ -181,7 +159,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
             child: TextField(
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.search),
-                hintText: 'Search title or filename',
+                hintText: 'Search song title or filename',
                 isDense: true,
               ),
               onChanged: (value) =>
@@ -189,17 +167,25 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
             ),
           ),
           Expanded(
-            child: assets.when(
+            child: entries.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) =>
                   Center(child: Text('Could not load the library: $error')),
               data: (rows) => rows.isEmpty
                   ? const _EmptyLibrary()
                   : ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 92),
                       itemCount: rows.length,
-                      itemBuilder: (context, index) =>
-                          _AssetTile(asset: rows[index]),
+                      itemBuilder: (context, index) => _LibraryTile(
+                        entry: rows[index],
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ReaderScreen.library(
+                              entries: rows,
+                              initialEntry: index,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
             ),
           ),
@@ -207,49 +193,35 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       ),
     );
   }
-
-  void _showReviewQueue() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const ReviewQueueScreen()));
-  }
 }
 
-class _AssetTile extends StatelessWidget {
-  const _AssetTile({required this.asset});
-  final AssetRecord asset;
+class _LibraryTile extends StatelessWidget {
+  const _LibraryTile({required this.entry, required this.onTap});
+  final LibraryEntry entry;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) => Card(
     child: ListTile(
-      leading: Icon(
-        asset.availabilityState == 'available'
-            ? Icons.description_outlined
-            : Icons.link_off,
-      ),
-      title: Text(asset.extractedTitle ?? asset.filename),
+      leading: const Icon(Icons.description_outlined),
+      title: Text(entry.title),
       subtitle: Text(
         [
-          if (asset.extractedTitle != null) asset.filename,
-          if (asset.reviewState == 'pending') 'Needs title review',
-          if (asset.availabilityState != 'available')
-            'File unavailable — relink needed',
+          if (entry.keyLabel != null) 'Key ${entry.keyLabel}',
+          if (entry.versionLabel != null) entry.versionLabel!,
+          '${entry.assets.length} page${entry.assets.length == 1 ? '' : 's'}',
+          entry.assets.first.filename,
         ].join(' • '),
       ),
-      trailing: asset.reviewState == 'pending'
-          ? const Icon(Icons.warning_amber_rounded)
-          : const Icon(Icons.chevron_right),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => ReaderScreen.standalone(asset: asset),
-        ),
-      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
     ),
   );
 }
 
 class _EmptyLibrary extends StatelessWidget {
   const _EmptyLibrary();
+
   @override
   Widget build(BuildContext context) => const Center(
     child: Padding(
@@ -259,10 +231,10 @@ class _EmptyLibrary extends StatelessWidget {
         children: [
           Icon(Icons.library_music_outlined, size: 64),
           SizedBox(height: 16),
-          Text('No song sheets yet', style: TextStyle(fontSize: 20)),
+          Text('No recognized song sheets', style: TextStyle(fontSize: 20)),
           SizedBox(height: 8),
           Text(
-            'Add images to your managed folder or use Import, then refresh the library.',
+            'Configure authorized folders and an inclusive date range in Settings, then run a scoped scan.',
             textAlign: TextAlign.center,
           ),
         ],
@@ -276,39 +248,134 @@ class ReviewQueueScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pending = ref.watch(pendingAssetsProvider);
+    final discoveries = ref.watch(uncertainDiscoveriesProvider);
+    final rejected = ref.watch(nonSongDiscoveriesProvider);
+    final assets = ref.watch(pendingAssetsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Review recognized titles')),
-      body: pending.when(
+      appBar: AppBar(title: const Text('Review queue')),
+      body: discoveries.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('$error')),
-        data: (assets) => assets.isEmpty
-            ? const Center(child: Text('Everything has been reviewed.'))
-            : ListView.builder(
-                itemCount: assets.length,
-                itemBuilder: (context, index) {
-                  final asset = assets[index];
-                  return ListTile(
-                    title: Text(asset.extractedTitle ?? 'Uncertain title'),
-                    subtitle: Text(
-                      asset.rawOcr?.trim().isEmpty == false
-                          ? asset.rawOcr!
-                          : asset.filename,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
+        data: (uncertain) => rejected.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(child: Text('$error')),
+          data: (nonSongs) => assets.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(child: Text('$error')),
+            data: (pending) {
+              if (uncertain.isEmpty && nonSongs.isEmpty && pending.isEmpty) {
+                return const Center(
+                  child: Text('No classifications or titles to review.'),
+                );
+              }
+              return ListView(
+                children: [
+                  if (uncertain.isNotEmpty)
+                    const ListTile(
+                      title: Text('Uncertain image classification'),
                     ),
-                    trailing: Text(
-                      '${(asset.qualityScore * 100).round()}% score',
+                  for (final discovery in uncertain)
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.help_outline),
+                        title: Text(discovery.filename),
+                        subtitle: Text(
+                          'Music evidence score ${((discovery.classificationScore ?? 0) * 100).round()}%. Original preserved.',
+                        ),
+                        trailing: PopupMenuButton<bool>(
+                          onSelected: (isSong) async {
+                            try {
+                              await ref
+                                  .read(importCoordinatorProvider)
+                                  .confirmClassification(
+                                    discovery,
+                                    isSongSheet: isSong,
+                                  );
+                            } catch (error) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Review failed: $error'),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          itemBuilder: (_) => const [
+                            PopupMenuItem(
+                              value: true,
+                              child: Text('Song sheet'),
+                            ),
+                            PopupMenuItem(
+                              value: false,
+                              child: Text('Not a song sheet'),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    onTap: () => _review(context, ref, asset),
-                  );
-                },
-              ),
+                  if (nonSongs.isNotEmpty)
+                    const ListTile(
+                      title: Text('Classified as not song sheets'),
+                    ),
+                  for (final discovery in nonSongs)
+                    ListTile(
+                      leading: const Icon(Icons.image_not_supported_outlined),
+                      title: Text(discovery.filename),
+                      subtitle: const Text(
+                        'Kept unchanged and excluded from the Song Library.',
+                      ),
+                      trailing: TextButton(
+                        onPressed: () =>
+                            _correctClassification(context, ref, discovery),
+                        child: const Text('This is a song sheet'),
+                      ),
+                    ),
+                  if (pending.isNotEmpty)
+                    const ListTile(title: Text('Uncertain title OCR')),
+                  for (final asset in pending)
+                    ListTile(
+                      title: Text(asset.extractedTitle ?? 'Uncertain title'),
+                      subtitle: Text(
+                        asset.rawOcr?.trim().isEmpty == false
+                            ? asset.rawOcr!
+                            : asset.filename,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: Text(
+                        '${(asset.qualityScore * 100).round()}% score',
+                      ),
+                      onTap: () => _reviewTitle(context, ref, asset),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }
 
-  Future<void> _review(
+  Future<void> _correctClassification(
+    BuildContext context,
+    WidgetRef ref,
+    DiscoveryRecord discovery,
+  ) async {
+    try {
+      await ref
+          .read(importCoordinatorProvider)
+          .confirmClassification(discovery, isSongSheet: true);
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Correction failed: $error')));
+      }
+    }
+  }
+
+  Future<void> _reviewTitle(
     BuildContext context,
     WidgetRef ref,
     AssetRecord asset,
