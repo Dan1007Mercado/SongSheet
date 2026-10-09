@@ -70,6 +70,12 @@ class ImportSummary {
   final Map<String, int> timingsMicros;
 }
 
+class ScanCancelledException implements Exception {
+  const ScanCancelledException();
+  @override
+  String toString() => 'Scan cancelled because its configuration changed';
+}
+
 class ImportCoordinator {
   ImportCoordinator(this.database, this.storage, this.ocr);
 
@@ -78,6 +84,13 @@ class ImportCoordinator {
   final OcrService ocr;
   final _uuid = const Uuid();
   Future<void> _mutationTail = Future.value();
+  int _scanGeneration = 0;
+
+  void cancelActiveScan() => _scanGeneration++;
+
+  void _checkScan(int generation) {
+    if (generation != _scanGeneration) throw const ScanCancelledException();
+  }
 
   Future<T> _serialize<T>(Future<T> Function() action) {
     final result = Completer<T>();
@@ -108,6 +121,7 @@ class ImportCoordinator {
   }
 
   Future<void> saveConfiguration(ScanConfiguration value) async {
+    cancelActiveScan();
     await database.transaction(() async {
       await database.setSetting('scan_start_date', _dateKey(value.startDate));
       await database.setSetting('scan_end_date', _dateKey(value.endDate));
@@ -117,19 +131,25 @@ class ImportCoordinator {
 
   Future<ImportSummary> refresh({
     void Function(ImportProgress progress)? onProgress,
-  }) => _serialize(() async {
+  }) {
+    final generation = _scanGeneration;
+    return _serialize(() async {
+    _checkScan(generation);
     final totalWatch = Stopwatch()..start();
     final totals = <String, int>{};
     final config = await loadConfiguration();
     await recoverPendingOperations(config: config);
+    _checkScan(generation);
     final folders = await database.select(database.sourceFolders).get();
     final documents = <({SourceFolderRecord folder, SafDocument document})>[];
     final discoveryWatch = Stopwatch()..start();
     for (final folder in folders) {
+      _checkScan(generation);
       final found = await storage.listImages(
         folder.treeUri,
         includeSubfolders: folder.includeSubfolders,
       );
+      _checkScan(generation);
       documents.addAll(
         found.map((document) => (folder: folder, document: document)),
       );
@@ -144,6 +164,7 @@ class ImportCoordinator {
     var skipped = 0;
     final failures = <String>[];
     for (var index = 0; index < documents.length; index++) {
+      _checkScan(generation);
       final item = documents[index];
       final document = item.document;
       onProgress?.call(
@@ -168,6 +189,7 @@ class ImportCoordinator {
       final eligible = config.includes(eligibilityDate);
       final eligibilityMicros = eligibilityWatch.elapsedMicroseconds;
 
+      _checkScan(generation);
       var discovery = await _upsertDiscoveryMetadata(
         existing: existing,
         folder: item.folder,
@@ -197,11 +219,14 @@ class ImportCoordinator {
         continue;
       }
       try {
-        final outcome = await _classifyAndProcess(document, discovery, config);
+        _checkScan(generation);
+        final outcome = await _classifyAndProcess(document, discovery, config, generation);
         imported += outcome == _Outcome.imported ? 1 : 0;
         deleted += outcome == _Outcome.duplicateDeleted ? 1 : 0;
         pending += outcome == _Outcome.pendingReview ? 1 : 0;
         nonSongs += outcome == _Outcome.nonSong ? 1 : 0;
+      } on ScanCancelledException {
+        rethrow;
       } catch (error) {
         failures.add('${document.name}: $error');
         await _updateDiscovery(
@@ -214,6 +239,7 @@ class ImportCoordinator {
         );
       }
     }
+    _checkScan(generation);
     totalWatch.stop();
     totals['total'] = totalWatch.elapsedMicroseconds;
     final summary = ImportSummary(
@@ -226,6 +252,7 @@ class ImportCoordinator {
       failures: failures,
       timingsMicros: totals,
     );
+    _checkScan(generation);
     await database.setSetting(
       'last_scan_summary',
       jsonEncode({
@@ -250,6 +277,7 @@ class ImportCoordinator {
     );
     return summary;
   });
+  }
 
   Future<DiscoveryRecord> _upsertDiscoveryMetadata({
     required DiscoveryRecord? existing,
@@ -334,7 +362,9 @@ class ImportCoordinator {
     SafDocument document,
     DiscoveryRecord discovery,
     ScanConfiguration config,
+    int generation,
   ) async {
+    _checkScan(generation);
     await _updateDiscovery(
       discovery.id,
       DiscoveryLedgerCompanion(
@@ -347,6 +377,7 @@ class ImportCoordinator {
     final classifyWatch = Stopwatch()..start();
     final preview = await storage.readPreview(document.uri);
     final classification = await Isolate.run(() => classifyPreview(preview));
+    _checkScan(generation);
     timings['classification'] = classifyWatch.elapsedMicroseconds;
     if (classification.classification == SheetClassification.nonSongSheet) {
       await _updateDiscovery(
@@ -385,7 +416,7 @@ class ImportCoordinator {
         updatedAt: Value(DateTime.now()),
       ),
     );
-    return _processConfirmedSong(document, discovery.id, config, timings);
+    return _processConfirmedSong(document, discovery.id, config, timings, generation);
   }
 
   Future<_Outcome> _processConfirmedSong(
@@ -393,7 +424,9 @@ class ImportCoordinator {
     String discoveryId,
     ScanConfiguration config,
     Map<String, int> timings,
+    int generation,
   ) async {
+    _checkScan(generation);
     if (!await _isEligibleDiscovery(discoveryId, config)) {
       await _updateDiscovery(
         discoveryId,
@@ -407,6 +440,7 @@ class ImportCoordinator {
     final existingAtUri = await database.assetByUri(document.uri);
     final readWatch = Stopwatch()..start();
     final read = await storage.readImage(document.uri);
+    _checkScan(generation);
     timings['read'] = readWatch.elapsedMicroseconds;
     timings['hash'] = timings['read']!;
     final digest = read.sha256;
@@ -440,6 +474,7 @@ class ImportCoordinator {
 
     final preprocessingWatch = Stopwatch()..start();
     final inspection = await Isolate.run(() => inspectSheet(read.bytes));
+    _checkScan(generation);
     timings['preprocessing'] = preprocessingWatch.elapsedMicroseconds;
     final pixelMatches =
         (await database.assetsByPixelFingerprint(
@@ -479,6 +514,7 @@ class ImportCoordinator {
     }
 
     final analysis = await ocr.recognizeSheet(read.bytes, inspection);
+    _checkScan(generation);
     timings['ocr'] = analysis.ocrMicros;
     timings['preprocessing'] =
         (timings['preprocessing'] ?? 0) + analysis.enhancementMicros;
