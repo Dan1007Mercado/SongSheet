@@ -652,6 +652,7 @@ class ImportCoordinator {
       discovery.id,
       config,
       _decodeTimings(discovery.stageTimingsJson),
+      _scanGeneration,
     );
   });
 
