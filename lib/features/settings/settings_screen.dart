@@ -248,7 +248,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const ListTile(
             title: Text('Inclusive discovery dates'),
             subtitle: Text(
-              'The date is the provider’s added/import date when exposed. Otherwise Song Sheets uses and persists the first-seen date. Last-modified time detects changes only and is never silently treated as capture or download date.',
+              'Uses the date an image was added or downloaded to the device when Android exposes it. Original capture date and first-seen date do not qualify an image. Images with unknown saved dates are skipped during automatic OCR.',
             ),
           ),
           if (configuration == null)
