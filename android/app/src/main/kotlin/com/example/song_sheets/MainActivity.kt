@@ -260,7 +260,9 @@ class MainActivity : FlutterActivity() {
     private fun queryProviderAddedAt(uri: Uri): Long? = try {
         contentResolver.query(uri, null, null, null, null)?.use { cursor ->
             if (!cursor.moveToFirst()) return null
-            val names = listOf(MediaStore.MediaColumns.DATE_ADDED, "date_created", "downloaded_at")
+            // Capture/creation dates are not download dates. Only use a real
+            // provider-added timestamp; never infer it from last-modified.
+            val names = listOf(MediaStore.MediaColumns.DATE_ADDED, "downloaded_at")
             for (name in names) {
                 val index = cursor.getColumnIndex(name)
                 if (index >= 0 && !cursor.isNull(index)) {
